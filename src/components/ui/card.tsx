@@ -1,17 +1,5 @@
-export function Card({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
-    >
-      {children}
-    </div>
-  );
+export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>;
 }
 
 export function CardHeader({
@@ -34,12 +22,6 @@ export function CardHeader({
   );
 }
 
-export function CardBody({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+export function CardBody({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`px-5 py-4 ${className}`}>{children}</div>;
 }

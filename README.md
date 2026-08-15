@@ -1,46 +1,94 @@
 # Intelloger DealForge
 
-DealForge is the intelligence layer between the first client conversation and
-successful project delivery. It turns fragmented sales information into
-defensible solutions, commercially safe proposals and delivery-ready
-commitments.
+DealForge is Intelloger's governed opportunity operating system. It turns
+fragmented pursuit information into one reusable record, then uses that
+same record to shape discovery, solution options, pricing, proposals,
+negotiations and delivery handover.
 
-This repository contains the first-version "spine" of DealForge:
+> DealForge is not an AI proposal generator. It is the controlled
+> intelligence layer connecting pursuit decisions to commercially safe
+> outputs and delivery-ready commitments.
 
-- **Living Deal Twin** — one evolving record per opportunity: company,
-  environment, stakeholders, risks, commitments. Every fact carries a status
-  (confirmed by client, found in documents, assumed, internally proposed,
-  still unknown, contradictory).
-- **Discovery Architect** — question templates generated dynamically from
-  the deal type and modules selected, with a coverage meter per module and
-  a lightweight "import from meeting notes" extractor.
-- **Commercial Lab** — an effort/cost/price estimator with complexity
-  multipliers and a live "what breaks the budget?" simulator, producing
-  P50 / P80 / maximum-exposure bands.
-- **Promise Ledger** — every commitment made during the sale, classified and
-  checked against the estimate; flags commitments with no backing effort
-  (the scope firewall).
-- **Proposal Studio** — generates persona-specific proposal documents from
-  the Deal Twin (never inventing references, pricing or availability),
-  tracks a lightweight approval workflow, and exports to `.docx`.
-- **Proof & Reference Vault** — searchable library of references, case
-  studies, CVs and reusable content with confidentiality tracking.
-- **Today** — a lightweight executive command centre: weighted pipeline,
-  high-risk deals, pending approvals and promise-ledger warnings.
+This build implements the product described in the **V22 Product & Operating
+Manual**: the Living Deal Twin, the governed Answer Graph, the Deal
+Intelligence scoring engine, Solution Forge, the detailed commercial model,
+Proposal Studio, the Promise Ledger / Scope Handshake / Negotiation Arena,
+Submission Check, Proof Vault, Oracle coordination, delivery handover, and
+the Today / Portfolio decision views.
+
+## Primary flow
+
+**Today → Deals → Understand → Build offer → Proposal → Handover**, with
+stage-gated specialist controls (Health details, Sources, Detailed
+solution, Detailed estimate, Negotiate, Commitments, Submission check,
+Client share, Oracle coordination) reachable once a deal exists.
+
+## Design principles carried into the code
+
+- **Empty by default.** Creating a deal prefills nothing — no sample or
+  assumed account data. `src/db/seed.ts` only seeds the reusable Proof
+  Vault, never a deal.
+- **Controlled input first.** The Answer Graph uses single/multiple/number
+  response types (doc 4.2), not free text.
+- **Revision safety.** Every deal save is optimistic-concurrency checked
+  (`src/lib/deal-repo.ts` / `src/lib/deal-mutation.ts`) — a stale save is
+  rejected with a visible conflict banner instead of silently overwriting
+  newer work.
+- **Nothing invented.** Proposal generation, Promise Ledger candidates,
+  Scope Handshake statements and Proof Vault matches are all assembled
+  from data already on the Deal Twin — never fabricated.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Prisma ORM with SQLite (via the `better-sqlite3` driver adapter)
-- `docx` for Word export
+- **Drizzle ORM**, schema written in `drizzle-orm/sqlite-core` — the same
+  schema and queries work against `drizzle-orm/d1` in a Cloudflare
+  deployment. Locally it runs on `better-sqlite3` against a file database.
+- **pdf-lib** for client-side branded PDF generation (PDF 1.4). There is no
+  Markdown/HTML export path — the doc is explicit that generated output is
+  PDF only.
+
+## What's real here vs. what's documented-but-not-provisioned
+
+This container has no Cloudflare account, no D1/R2 bindings and no ChatGPT
+App platform session to attach to, so those integrations are built to the
+*interface* the doc describes but run on local stand-ins:
+
+| Documented (production) | This build (local dev) |
+| --- | --- |
+| Cloudflare D1 via Drizzle | Same Drizzle schema, `better-sqlite3` driver (`src/db/client.ts`) |
+| Cloudflare R2 for sources/proof files | Local disk under `.storage/`, behind an R2-shaped `put/get/delete` interface (`src/lib/storage.ts`) |
+| ChatGPT-authenticated user headers | Trusts an `x-chatgpt-user-id` header if present, falls back to a fixed dev user (`src/lib/identity.ts`) |
+
+Swapping the left column in is a deployment task (wrangler bindings, a
+`@cloudflare/next-on-pages` build, and an actual ChatGPT App registration),
+not a code change to the business logic.
+
+## Current limitations (carried from doc section 17)
+
+- **No AI source analysis.** Files/notes stored on the Sources screen are
+  governed records only — no automatic findings are produced.
+- **Probability is a transparent, contextual model — not calibrated
+  against historical win/loss data.** Use it for decision discipline, not
+  as a revenue guarantee.
+- **No Oracle licensing engine, no legal-policy engine.** Licensing and
+  legal exceptions require human/Oracle confirmation.
+- **Delivery capacity is a governed input, not a connected resource
+  calendar.**
+- **No Zoho/Microsoft/Oracle workflow integrations.**
+
+DealForge must never invent: project references, consultant/delivery
+availability, licensing quantities or Oracle approval, commercial
+approvals or margin-floor exceptions, client-confirmed scope, or legal
+commitments.
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env      # DATABASE_URL="file:./dev.db"
-npx prisma migrate dev    # creates the SQLite database
-npx prisma db seed        # loads two example opportunities
+cp .env.example .env        # DATABASE_PATH, STORAGE_DIR
+npm run db:migrate          # creates the local SQLite database
+npm run db:seed             # seeds the Proof Vault only — deals stay empty
 npm run dev
 ```
 
@@ -49,22 +97,21 @@ Then open http://localhost:3000.
 ## Project structure
 
 ```
-prisma/schema.prisma         Data model for the Living Deal Twin
-prisma/seed.ts                Example opportunities, discovery answers, promises, proof
-src/lib/domain.ts             Deal types, modules, discovery question templates, status vocab
-src/lib/estimate.ts           Commercial Lab calculation engine
-src/lib/coverage.ts           Discovery coverage meter calculation
-src/lib/proposal-generator.ts Assembles proposal markdown from the Deal Twin
-src/lib/docx-export.ts        Markdown -> .docx conversion
-src/app/                      Routes: Today, Opportunities, Deal Twin, Discovery,
-                               Commercial Lab, Promises, Proposals, Proof Vault
+src/db/schema.ts              deal_states / radar_intakes / proof_assets (Drizzle, sqlite-core)
+src/types/deal-twin.ts        Living Deal Twin payload types
+src/lib/questions.ts          19 standard + tailored Answer Graph question packs
+src/lib/answer-graph.ts       Active-question recalculation and answer invalidation
+src/lib/scoring.ts            Deal Intelligence engine (evidence, coverage, gates, probability, safety modes)
+src/lib/solution-forge.ts     Stabilise/Modernise/Transform inclusion + effort/confidence/risk
+src/lib/commercial.ts         Detailed commercial estimate engine
+src/lib/promises.ts           Promise Ledger candidate generation
+src/lib/scope-handshake.ts    Scope Handshake generation and completion gate
+src/lib/negotiation.ts        Negotiation Arena cash/margin impact
+src/lib/submission-check.ts   Deterministic CFO/CIO/procurement/delivery/Oracle checks
+src/lib/oracle.ts             Alliance health and Oracle rationale
+src/lib/handover.ts           Delivery handover readiness
+src/lib/today.ts              Decision queue and Answer Graph health
+src/lib/portfolio.ts          Leadership aggregation across all deals
+src/lib/pdf/                  Branded PDF generators (deal twin, answer graph, proposal, oracle brief, handover)
+src/app/                      Today, Deals, Proof Vault, Portfolio, and the deal-scoped specialist screens
 ```
-
-## Notes on scope
-
-This is the first-version spine described in the product vision: Living Deal
-Twin, Discovery Architect, Commercial Lab, Proposal Studio, Proof Vault, a
-lightweight approval workflow, and the Promise Ledger. Later phases (client
-conviction rooms, negotiation coaching, red-team reviews, Oracle alliance
-tracking, delivery handover, AI rehearsal rooms, predictive analytics) are
-intentionally not built yet.

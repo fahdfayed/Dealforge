@@ -6,58 +6,71 @@ import {
   LayoutDashboard,
   Briefcase,
   Compass,
-  Calculator,
+  Wrench,
   FileText,
   ShieldCheck,
   Library,
+  BarChart3,
+  HeartPulse,
+  Inbox,
+  Sliders,
+  Calculator,
+  Handshake,
+  ClipboardCheck,
+  Users,
+  Building2,
+  PackageCheck,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+const PRIMARY_NAV = [
   { href: "/", label: "Today", icon: LayoutDashboard },
-  { href: "/opportunities", label: "Opportunities", icon: Briefcase },
-  { href: "/proof-vault", label: "Proof Vault", icon: Library },
+  { href: "/deals", label: "Deals", icon: Briefcase },
+  { href: "/proof", label: "Proof Vault", icon: Library },
+  { href: "/portfolio", label: "Portfolio", icon: BarChart3 },
 ];
 
-const OPPORTUNITY_SUBNAV = [
+const DEAL_NAV = [
   { segment: "", label: "Deal Twin", icon: Compass },
-  { segment: "discovery", label: "Discovery Architect", icon: Compass },
-  { segment: "estimate", label: "Commercial Lab", icon: Calculator },
-  { segment: "promises", label: "Promise Ledger", icon: ShieldCheck },
-  { segment: "proposals", label: "Proposal Studio", icon: FileText },
+  { segment: "understand", label: "Understand", icon: Inbox },
+  { segment: "health", label: "Health details", icon: HeartPulse },
+  { segment: "sources", label: "Sources", icon: FileText },
+  { segment: "build-offer", label: "Build offer", icon: Wrench },
+  { segment: "solution", label: "Detailed solution", icon: Sliders },
+  { segment: "estimate", label: "Detailed estimate", icon: Calculator },
+  { segment: "negotiate", label: "Negotiate", icon: Handshake },
+  { segment: "commitments", label: "Commitments", icon: ShieldCheck },
+  { segment: "submission-check", label: "Submission check", icon: ClipboardCheck },
+  { segment: "client-share", label: "Client share", icon: Users },
+  { segment: "oracle", label: "Oracle coordination", icon: Building2 },
+  { segment: "proposal", label: "Proposal", icon: FileText },
+  { segment: "handover", label: "Handover", icon: PackageCheck },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const oppMatch = pathname.match(/^\/opportunities\/([^/]+)(?:\/(.*))?$/);
-  const activeOppId = oppMatch && oppMatch[1] !== "new" ? oppMatch[1] : null;
+  const dealMatch = pathname.match(/^\/deals\/([^/]+)(?:\/(.*))?$/);
+  const activeDealId = dealMatch && dealMatch[1] !== "new" ? dealMatch[1] : null;
 
   return (
     <nav className="flex h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
       <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">
-          DF
-        </div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">DF</div>
         <div>
           <p className="text-sm font-semibold text-slate-900">DealForge</p>
-          <p className="text-xs text-slate-400">by Intelloger</p>
+          <p className="text-xs text-slate-400">by Intelloger — V22</p>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+          {PRIMARY_NAV.map((item) => {
+            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    active ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
@@ -68,23 +81,19 @@ export function SidebarNav() {
           })}
         </ul>
 
-        {activeOppId && (
+        {activeDealId && (
           <div className="mt-6">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              This opportunity
-            </p>
+            <p className="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">This deal</p>
             <ul className="mt-2 space-y-1">
-              {OPPORTUNITY_SUBNAV.map((item) => {
-                const href = `/opportunities/${activeOppId}${item.segment ? `/${item.segment}` : ""}`;
+              {DEAL_NAV.map((item) => {
+                const href = `/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`;
                 const active = pathname === href;
                 return (
                   <li key={item.segment}>
                     <Link
                       href={href}
                       className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                        active
-                          ? "bg-indigo-50 text-indigo-700"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        active ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
                       <item.icon className="h-4 w-4" />

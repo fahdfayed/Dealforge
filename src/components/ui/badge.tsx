@@ -7,18 +7,10 @@ const COLOR_CLASSES: Record<string, string> = {
   rose: "bg-rose-50 text-rose-700 ring-rose-600/20",
 };
 
-export function Badge({
-  color = "slate",
-  children,
-}: {
-  color?: string;
-  children: React.ReactNode;
-}) {
+export function Badge({ color = "slate", children }: { color?: string; children: React.ReactNode }) {
   const classes = COLOR_CLASSES[color] ?? COLOR_CLASSES.slate;
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${classes}`}
-    >
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${classes}`}>
       {children}
     </span>
   );
