@@ -6,6 +6,8 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ApprovalWorkflow } from "@/components/approval-workflow";
 import { ConflictBanner } from "@/components/conflict-banner";
+import { EmptyState } from "@/components/empty-state";
+import { ActionButton } from "@/components/button-group";
 import { saveScenarioAction, setBaselineAction, deleteScenarioAction, submitScenarioApprovalAction } from "./actions";
 
 export default async function DetailedEstimatePage({
@@ -38,7 +40,11 @@ export default async function DetailedEstimatePage({
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-900">Scenario comparison and saved baselines</h3>
         {twin.commercialScenarios.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-slate-500">No scenarios saved yet.</Card>
+          <EmptyState
+            icon="📊"
+            title="No scenarios saved yet"
+            description="Save a commercial scenario to compare estimates and set baselines."
+          />
         ) : (
           twin.commercialScenarios
             .slice()
@@ -76,13 +82,15 @@ export default async function DetailedEstimatePage({
                   <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3">
                     {twin.savedCommercialScenarioId !== s.id && (
                       <form action={setBaselineAction.bind(null, id, deal.revision, s.id)}>
-                        <button type="submit" className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                        <ActionButton type="submit" variant="secondary" size="sm">
                           Set as baseline
-                        </button>
+                        </ActionButton>
                       </form>
                     )}
                     <form action={deleteScenarioAction.bind(null, id, deal.revision, s.id)}>
-                      <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+                      <ActionButton type="submit" variant="ghost" size="sm">
+                        Delete
+                      </ActionButton>
                     </form>
                   </div>
                 </CardBody>

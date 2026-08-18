@@ -3,6 +3,9 @@ import { PROOF_ASSET_TYPES, PROOF_ACCESS_LEVELS } from "@/types/proof";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
+import { Input, Textarea, Select } from "@/components/form-input";
+import { ActionButton } from "@/components/button-group";
 import { addProofAssetAction, deleteProofAssetAction } from "./actions";
 
 const ACCESS_COLOR: Record<string, string> = { Public: "emerald", Confidential: "sky", "Verbal-only": "amber", "Permission-required": "violet" };
@@ -19,7 +22,11 @@ export default async function ProofVaultPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           {assets.length === 0 ? (
-            <Card className="p-10 text-center text-sm text-slate-500">No proof assets yet.</Card>
+            <EmptyState
+              icon="📋"
+              title="No proof assets yet"
+              description="Add evidence to build a reusable library of supporting documents and data."
+            />
           ) : (
             assets.map((asset) => (
               <Card key={asset.id}>
@@ -35,7 +42,9 @@ export default async function ProofVaultPage() {
                   {asset.whatItProves && <p className="mt-1 text-xs text-slate-500">Proves: {asset.whatItProves}</p>}
                   {asset.fileName && <p className="mt-1 text-xs text-slate-400">Attached: {asset.fileName}</p>}
                   <form action={deleteProofAssetAction.bind(null, asset.id)} className="mt-2">
-                    <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">Remove</button>
+                    <ActionButton type="submit" variant="ghost" size="sm">
+                      Remove
+                    </ActionButton>
                   </form>
                 </CardBody>
               </Card>
@@ -48,25 +57,28 @@ export default async function ProofVaultPage() {
             <CardHeader title="Add proof" />
             <CardBody>
               <form action={addProofAssetAction} className="space-y-3">
-                <input name="title" required placeholder="Title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-                <select name="type" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                <Input name="title" label="Title" required placeholder="Evidence title" />
+                <Select name="type" label="Type" required defaultValue={PROOF_ASSET_TYPES[0]}>
                   {PROOF_ASSET_TYPES.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
-                </select>
-                <input name="tags" placeholder="Tags (industry, country, product…)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-                <textarea name="summary" required rows={3} placeholder="Summary" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-                <input name="whatItProves" placeholder="What it proves" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-                <select name="access" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                </Select>
+                <Input name="tags" label="Tags" placeholder="industry, country, product…" hint="Comma-separated values for filtering" />
+                <Textarea name="summary" label="Summary" required placeholder="Brief description of the evidence" rows={3} />
+                <Input name="whatItProves" label="What it proves" placeholder="e.g., Market demand, financial viability…" />
+                <Select name="access" label="Access Level" required defaultValue={PROOF_ACCESS_LEVELS[0]}>
                   {PROOF_ACCESS_LEVELS.map((a) => (
                     <option key={a} value={a}>{a}</option>
                   ))}
-                </select>
-                <input type="file" name="file" className="w-full text-sm" />
-                <p className="text-xs text-slate-400">Max 15 MB.</p>
-                <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
-                  Add
-                </button>
+                </Select>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">Attachment</label>
+                  <input type="file" name="file" className="w-full text-sm" />
+                  <p className="mt-1 text-xs text-slate-400">Max 15 MB.</p>
+                </div>
+                <ActionButton type="submit" variant="primary" className="w-full">
+                  Add proof
+                </ActionButton>
               </form>
             </CardBody>
           </Card>

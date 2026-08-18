@@ -5,6 +5,7 @@ import type { CommercialScenario } from "@/types/deal-twin";
 import { computeNegotiationImpact, VALUE_EXCHANGES } from "@/lib/negotiation";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/meter";
+import { ActionButton } from "@/components/button-group";
 
 export function NegotiationPanel({
   dealId,
@@ -71,17 +72,19 @@ export function NegotiationPanel({
             <StatTile label="Cash impact" value={fmt(-impact.cashImpact)} />
             <StatTile label="Current margin" value={`${impact.currentMarginPct}%`} />
             <StatTile label="New margin" value={`${impact.newMarginPct}%`} hint={impact.newMarginPct < 20 ? "Below 20% floor" : undefined} />
-            <button
+            <ActionButton
               disabled={isPending}
               onClick={() =>
                 startTransition(async () => {
                   await onApply(dealId, reductionPct, exchanges);
                 })
               }
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+              variant="primary"
+              className="w-full"
+              loading={isPending}
             >
-              {isPending ? "Applying…" : "Apply as new baseline scenario"}
-            </button>
+              Apply scenario
+            </ActionButton>
           </CardBody>
         </Card>
       </div>

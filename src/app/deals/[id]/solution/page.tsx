@@ -5,6 +5,8 @@ import { AUTHORITIES, DELIVERY_MODELS, PRIORITIES } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
+import { ActionButton } from "@/components/button-group";
+import { Input, Textarea, Select } from "@/components/form-input";
 import {
   updateObjectiveAction,
   updateComponentAction,
@@ -53,46 +55,27 @@ export default async function DetailedSolutionPage({
         <CardBody>
           <form action={updateObjectiveAction.bind(null, id, rev)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">Solution title (client-facing)</label>
-                <input name="solutionTitle" defaultValue={twin.solution.clientLanguage.solutionTitle} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">Delivery model</label>
-                <select name="deliveryModel" defaultValue={twin.solution.deliveryModel} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-                  {DELIVERY_MODELS.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
+              <Input name="solutionTitle" label="Solution title (client-facing)" defaultValue={twin.solution.clientLanguage.solutionTitle} />
+              <Select name="deliveryModel" label="Delivery model" defaultValue={twin.solution.deliveryModel}>
+                {DELIVERY_MODELS.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </Select>
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Objective</label>
-              <textarea name="objective" defaultValue={twin.solution.objective} rows={2} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500">Decision ask</label>
-              <textarea name="decisionAsk" defaultValue={twin.solution.clientLanguage.decisionAsk} rows={2} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            </div>
+            <Textarea name="objective" label="Objective" defaultValue={twin.solution.objective} rows={2} />
+            <Textarea name="decisionAsk" label="Decision ask" defaultValue={twin.solution.clientLanguage.decisionAsk} rows={2} />
             <div className="grid grid-cols-5 gap-3">
               {LEVER_FIELDS.map((f) => (
-                <div key={f.name}>
-                  <label className="mb-1 block text-xs font-medium text-slate-500">{f.label}</label>
-                  <select
-                    name={f.name}
-                    defaultValue={(twin.solution.designLevers as unknown as Record<string, number>)[f.name]}
-                    className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
-                  >
-                    {[1, 2, 3, 4, 5].map((v) => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
-                </div>
+                <Select key={f.name} name={f.name} label={f.label} defaultValue={(twin.solution.designLevers as unknown as Record<string, number>)[f.name]} className="text-xs">
+                  {[1, 2, 3, 4, 5].map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </Select>
               ))}
             </div>
-            <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+            <ActionButton type="submit" variant="primary">
               Save
-            </button>
+            </ActionButton>
           </form>
         </CardBody>
       </Card>
@@ -129,16 +112,17 @@ export default async function DetailedSolutionPage({
                 <MiniSelect name="risk" defaultValue={c.risk} options={["Low", "Medium", "High"]} />
               </div>
               <div className="mt-2 flex items-center gap-2">
-                <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700">
+                <ActionButton type="submit" variant="primary" size="sm">
                   Save
-                </button>
+                </ActionButton>
                 {c.custom && (
-                  <button
+                  <ActionButton
                     formAction={removeComponentAction.bind(null, id, rev, c.id)}
-                    className="text-xs text-slate-400 hover:text-rose-600"
+                    variant="danger"
+                    size="sm"
                   >
                     Remove
-                  </button>
+                  </ActionButton>
                 )}
               </div>
             </form>
@@ -146,14 +130,16 @@ export default async function DetailedSolutionPage({
 
           <div className="border-t border-slate-100 pt-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Add custom capability</p>
-            <form action={addCustomComponentAction.bind(null, id, rev)} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <input name="category" placeholder="Category" className="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-              <input name="label" placeholder="Label" required className="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-              <input name="outcome" placeholder="Outcome" className="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-              <input name="effortDays" type="number" placeholder="Days" defaultValue={5} className="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-              <button type="submit" className="col-span-2 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 sm:col-span-4">
+            <form action={addCustomComponentAction.bind(null, id, rev)} className="space-y-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Input name="category" placeholder="Category" />
+                <Input name="label" placeholder="Label" required />
+                <Input name="outcome" placeholder="Outcome" />
+                <Input name="effortDays" type="number" placeholder="Days" defaultValue={5} />
+              </div>
+              <ActionButton type="submit" variant="primary" className="w-full">
                 Add capability
-              </button>
+              </ActionButton>
             </form>
           </div>
         </CardBody>
@@ -171,26 +157,27 @@ export default async function DetailedSolutionPage({
               <div className="flex gap-1">
                 {(["Open", "Resolved", "Retained"] as const).map((s) => (
                   <form key={s} action={updateDependencyStatusAction.bind(null, id, rev, d.id, s)}>
-                    <button
+                    <ActionButton
                       type="submit"
-                      className={`rounded-md px-2 py-1 text-xs font-medium ${d.status === s ? "bg-indigo-600 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                      variant={d.status === s ? "primary" : "secondary"}
+                      size="sm"
                     >
                       {s}
-                    </button>
+                    </ActionButton>
                   </form>
                 ))}
               </div>
             </div>
           ))}
           <form action={addDependencyAction.bind(null, id, rev)} className="flex gap-2">
-            <input name="description" placeholder="Dependency description" required className="flex-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-sm" />
-            <select name="classification" className="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+            <Input name="description" placeholder="Dependency description" required className="flex-1" />
+            <Select name="classification">
               <option>Critical path</option>
               <option>Cross-workstream</option>
-            </select>
-            <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700">
+            </Select>
+            <ActionButton type="submit" variant="primary" size="sm">
               Add
-            </button>
+            </ActionButton>
           </form>
         </CardBody>
       </Card>
@@ -279,13 +266,17 @@ function BoundaryCard({
           <div key={i} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm">
             <span>{item}</span>
             <form action={removeBoundaryAction.bind(null, dealId, revision, kind, i)}>
-              <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">Remove</button>
+              <ActionButton type="submit" variant="ghost" size="sm">
+                Remove
+              </ActionButton>
             </form>
           </div>
         ))}
         <form action={addBoundaryAction.bind(null, dealId, revision, kind)} className="flex gap-2">
-          <input name="text" required placeholder={`Add ${title.toLowerCase()}`} className="flex-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-sm" />
-          <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700">Add</button>
+          <Input name="text" required placeholder={`Add ${title.toLowerCase()}`} className="flex-1" />
+          <ActionButton type="submit" variant="primary" size="sm">
+            Add
+          </ActionButton>
         </form>
       </CardBody>
     </Card>

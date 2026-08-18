@@ -4,6 +4,7 @@ import { ACTION_STATUSES } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
+import { EmptyState } from "@/components/empty-state";
 import { createActionAction, updateActionStatusAction, deleteActionAction } from "./actions";
 
 const STATUS_COLOR: Record<string, string> = { Open: "amber", "In progress": "blue", Completed: "emerald", Cancelled: "slate" };
@@ -36,7 +37,12 @@ export default async function ActionsPage({
         />
         <CardBody>
           {openActions.length === 0 ? (
-            <p className="text-sm text-slate-500">No open actions. Create one to get started.</p>
+            <EmptyState
+              icon="✓"
+              title="All caught up!"
+              description="No open actions at the moment. Create one to track a task."
+              compact
+            />
           ) : (
             <div className="space-y-2">
               {openActions

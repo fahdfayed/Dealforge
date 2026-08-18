@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { ActionButton } from "@/components/button-group";
+import { Textarea } from "@/components/form-input";
+import { EmptyState } from "@/components/empty-state";
 import { addCommentAction, deleteCommentAction } from "./actions";
 import type { TeamComment, Deal } from "@/types/deal-twin";
 
@@ -52,41 +55,44 @@ export function CommentsClient({ initialDeal, dealId }: { initialDeal: Deal; dea
         <CardHeader title="Team comments" subtitle="Discuss this deal with your team" />
         <CardBody>
           <form onSubmit={handleAddComment} className="mb-6 space-y-3">
-            <textarea
+            <Textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
               disabled={loading}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 disabled:bg-slate-50"
               rows={3}
+              label={replyingTo ? "Reply" : "New comment"}
             />
             <div className="flex justify-between items-center">
-              <div className="text-xs text-slate-500">
-                {replyingTo && (
-                  <button
-                    type="button"
-                    onClick={() => setReplyingTo(null)}
-                    className="text-slate-600 hover:text-slate-900 underline"
-                  >
-                    ✕ Cancel reply
-                  </button>
-                )}
-              </div>
-              <button
+              {replyingTo && (
+                <ActionButton
+                  type="button"
+                  onClick={() => setReplyingTo(null)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  ✕ Cancel reply
+                </ActionButton>
+              )}
+              <div className="flex-1" />
+              <ActionButton
                 type="submit"
                 disabled={!newComment.trim() || loading}
-                className="rounded-md px-4 py-2 text-sm font-medium text-white hover:shadow-md disabled:bg-slate-300"
-                style={{
-                  backgroundColor: !newComment.trim() || loading ? undefined : "var(--intelloger-navy)",
-                }}
+                variant="primary"
+                loading={loading}
               >
-                {loading ? "..." : "Post"}
-              </button>
+                {loading ? "Posting..." : "Post"}
+              </ActionButton>
             </div>
           </form>
 
           {deal.twin.teamComments.length === 0 ? (
-            <p className="text-sm text-slate-500">No comments yet. Start the conversation.</p>
+            <EmptyState
+              icon="💬"
+              title="No comments yet"
+              description="Start the conversation with your team about this deal."
+              compact
+            />
           ) : (
             <div className="space-y-4">
               {deal.twin.teamComments.map((comment) => (
@@ -105,8 +111,10 @@ export function CommentsClient({ initialDeal, dealId }: { initialDeal: Deal; dea
         </CardBody>
       </Card>
 
-      <Link href={`/deals/${dealId}`} className="block rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 text-center">
-        Back to deal
+      <Link href={`/deals/${dealId}`}>
+        <ActionButton variant="secondary" className="w-full">
+          Back to deal
+        </ActionButton>
       </Link>
     </div>
   );
@@ -139,23 +147,24 @@ function CommentThread({
             <p className="text-sm font-medium text-slate-900">{comment.author}</p>
             <p className="mt-1 text-sm text-slate-700">{comment.text}</p>
           </div>
-          <button
+          <ActionButton
             onClick={() => onDelete(comment.id)}
-            className="text-xs text-slate-400 hover:text-rose-600"
+            variant="ghost"
+            size="sm"
             title="Delete comment"
           >
             ✕
-          </button>
+          </ActionButton>
         </div>
         <div className="mt-2 flex items-center justify-between gap-2 text-xs">
           <p className="text-slate-500">{new Date(comment.createdAt).toLocaleString()}</p>
-          <button
+          <ActionButton
             onClick={() => onReply(comment.id)}
-            className="font-medium hover:underline"
-            style={{ color: "var(--intelloger-navy)" }}
+            variant="ghost"
+            size="sm"
           >
             Reply
-          </button>
+          </ActionButton>
         </div>
       </div>
 

@@ -5,6 +5,8 @@ import { allianceHealth, generateOracleRationale } from "@/lib/oracle";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OracleBriefPdfButton } from "@/components/pdf-buttons";
+import { ActionButton } from "@/components/button-group";
+import { Input } from "@/components/form-input";
 import { addAllianceActionAction, toggleAllianceActionAction } from "./actions";
 
 export default async function OracleCoordinationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,22 +41,25 @@ export default async function OracleCoordinationPage({ params }: { params: Promi
                   <p className="text-xs text-slate-400">Owner: {a.owner || "unassigned"} · Due: {a.dueWindow || "—"}</p>
                 </div>
                 <form action={toggleAllianceActionAction.bind(null, id, rev, a.id)}>
-                  <button
+                  <ActionButton
                     type="submit"
-                    className={`rounded-md px-2 py-1 text-xs font-medium ${a.status === "Completed" ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                    variant={a.status === "Completed" ? "primary" : "secondary"}
+                    size="sm"
                   >
-                    {a.status === "Completed" ? "Complete" : "Mark complete"}
-                  </button>
+                    {a.status === "Completed" ? "Done" : "Complete"}
+                  </ActionButton>
                 </form>
               </div>
             ))}
-            <form action={addAllianceActionAction.bind(null, id, rev)} className="grid grid-cols-3 gap-2">
-              <input name="action" placeholder="Action" required className="col-span-3 rounded-md border border-slate-300 px-2.5 py-1.5 text-sm sm:col-span-1" />
-              <input name="owner" placeholder="Owner" className="rounded-md border border-slate-300 px-2.5 py-1.5 text-sm" />
-              <input name="dueWindow" placeholder="Due window" className="rounded-md border border-slate-300 px-2.5 py-1.5 text-sm" />
-              <button type="submit" className="col-span-3 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 sm:col-span-1">
+            <form action={addAllianceActionAction.bind(null, id, rev)} className="space-y-2">
+              <Input name="action" label="Action" required placeholder="What needs to happen?" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input name="owner" label="Owner" placeholder="Who?" />
+                <Input name="dueWindow" label="Due" placeholder="YYYY-MM-DD" />
+              </div>
+              <ActionButton type="submit" variant="primary" className="w-full">
                 Add
-              </button>
+              </ActionButton>
             </form>
           </CardBody>
         </Card>

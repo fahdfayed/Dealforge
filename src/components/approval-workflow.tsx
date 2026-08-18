@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import type { ApprovalRecord } from "@/types/deal-twin";
 import { Badge } from "@/components/ui/badge";
+import { Input, Textarea, Select } from "@/components/form-input";
 
 interface ApprovalWorkflowProps {
   approvals: ApprovalRecord[];
@@ -17,21 +18,44 @@ export function ApprovalWorkflow({ approvals, status, onSubmit, loading }: Appro
   const [approver, setApprover] = useState("");
   const [decision, setDecision] = useState<"approved" | "rejected">("approved");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!onSubmit || !approver.trim()) return;
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!onSubmit) return;
 
-    setSubmitting(true);
-    try {
-      await onSubmit(decision, comment, approver);
-      setComment("");
-      setApprover("");
-      setShowForm(false);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      setError(null);
+      setSuccess(false);
+
+      if (!approver.trim()) {
+        setError("Please enter your name");
+        return;
+      }
+
+      if (!comment.trim() && decision === "rejected") {
+        setError("Please provide a reason for rejection");
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        await onSubmit(decision, comment, approver);
+        setComment("");
+        setApprover("");
+        setDecision("approved");
+        setSuccess(true);
+        setShowForm(false);
+        setTimeout(() => setSuccess(false), 3000);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to submit approval");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [onSubmit, approver, comment, decision]
+  );
 
   const statusColors: Record<string, string> = {
     Draft: "slate",
@@ -47,6 +71,12 @@ export function ApprovalWorkflow({ approvals, status, onSubmit, loading }: Appro
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Approval workflow</p>
         <Badge color={statusColors[status]}>{status}</Badge>
       </div>
+
+      {success && (
+        <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3">
+          <p className="text-xs text-emerald-800">✓ Approval submitted successfully</p>
+        </div>
+      )}
 
       {approvals.length > 0 && (
         <div className="space-y-2 border-t border-slate-200 pt-3">
@@ -68,56 +98,63 @@ export function ApprovalWorkflow({ approvals, status, onSubmit, loading }: Appro
           {!showForm ? (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white"
+              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white transition-colors"
             >
               Add approval decision
             </button>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-2">
-              <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Approver name</label>
-                <input
-                  type="text"
-                  value={approver}
-                  onChange={(e) => setApprover(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Decision</label>
-                <select
-                  value={decision}
-                  onChange={(e) => setDecision(e.target.value as "approved" | "rejected")}
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs"
-                >
-                  <option value="approved">Approve</option>
-                  <option value="rejected">Reject</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Comment (optional)</label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add comment..."
-                  rows={2}
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs"
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {error && (
+                <div className="rounded-md bg-rose-50 border border-rose-200 p-2.5">
+                  <p className="text-xs text-rose-800">{error}</p>
+                </div>
+              )}
+
+              <Input
+                label="Approver name"
+                value={approver}
+                onChange={(e) => setApprover(e.target.value)}
+                placeholder="Your name"
+                disabled={submitting || loading}
+                required
+              />
+
+              <Select
+                label="Decision"
+                value={decision}
+                onChange={(e) => setDecision(e.target.value as "approved" | "rejected")}
+                disabled={submitting || loading}
+              >
+                <option value="approved">Approve</option>
+                <option value="rejected">Reject</option>
+              </Select>
+
+              <Textarea
+                label={decision === "rejected" ? "Reason for rejection" : "Comment (optional)"}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Add comment..."
+                rows={2}
+                disabled={submitting || loading}
+                required={decision === "rejected"}
+              />
+
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={submitting || loading}
-                  className="flex-1 rounded-md bg-indigo-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+                  className="flex-1 rounded-md bg-indigo-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-md border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-white"
+                  onClick={() => {
+                    setShowForm(false);
+                    setError(null);
+                  }}
+                  disabled={submitting || loading}
+                  className="rounded-md border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Cancel
                 </button>

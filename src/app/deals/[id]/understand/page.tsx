@@ -9,6 +9,8 @@ import { Meter } from "@/components/ui/meter";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { AnswerGraphPdfButton } from "@/components/pdf-buttons";
+import { ActionButton } from "@/components/button-group";
+import { Input, Select } from "@/components/form-input";
 import { answerQuestionAction, clearAnswerAction } from "./actions";
 
 export default async function UnderstandPage({
@@ -147,14 +149,14 @@ function QuestionForm({
 
       <form action={onSubmit} className="mt-2 space-y-2">
         {question.inputType === "single" && (
-          <select name="values" defaultValue={existing?.values[0] ?? ""} className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm">
+          <Select name="values" defaultValue={existing?.values[0] ?? ""} label="Answer">
             <option value="">Select…</option>
             {question.options?.map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>
             ))}
-          </select>
+          </Select>
         )}
         {question.inputType === "multiple" && (
           <div className="flex flex-wrap gap-2">
@@ -167,36 +169,39 @@ function QuestionForm({
           </div>
         )}
         {question.inputType === "number" && (
-          <input
+          <Input
             type="number"
             name="numberValue"
             defaultValue={existing?.numberValue ?? ""}
-            className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm"
+            label="Value"
+            placeholder="Enter a number"
           />
         )}
 
         <div className="grid grid-cols-3 gap-2">
-          <select name="authority" defaultValue={existing?.authority ?? "Unknown"} className="rounded-md border border-slate-300 px-2 py-1.5 text-xs">
+          <Select name="authority" defaultValue={existing?.authority ?? "Unknown"} label="Authority" className="text-xs">
             {AUTHORITIES.map((a) => (
               <option key={a} value={a}>
                 {a}
               </option>
             ))}
-          </select>
-          <input
+          </Select>
+          <Input
             name="source"
-            placeholder="Source"
+            label="Source"
+            placeholder="e.g., research, meeting"
             defaultValue={existing?.source ?? ""}
-            className="rounded-md border border-slate-300 px-2 py-1.5 text-xs"
+            className="text-xs"
           />
-          <input
+          <Input
             type="number"
             name="confidence"
-            placeholder="Confidence %"
+            label="Confidence"
+            placeholder="0-100 %"
             defaultValue={existing?.confidence ?? ""}
             min={0}
             max={100}
-            className="rounded-md border border-slate-300 px-2 py-1.5 text-xs"
+            className="text-xs"
           />
         </div>
 
@@ -205,16 +210,16 @@ function QuestionForm({
         ) : null}
 
         <div className="flex gap-2">
-          <button type="submit" className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
+          <ActionButton type="submit" variant="primary" size="sm">
             Save answer
-          </button>
+          </ActionButton>
         </div>
       </form>
       {onClear && (
         <form action={onClear} className="mt-1">
-          <button type="submit" className="text-[11px] text-slate-400 hover:text-rose-600">
+          <ActionButton type="submit" variant="ghost" size="sm">
             Clear answer
-          </button>
+          </ActionButton>
         </form>
       )}
     </div>

@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { ProposalPdfButtons } from "@/components/pdf-buttons";
 import { ApprovalWorkflow } from "@/components/approval-workflow";
+import { EmptyState } from "@/components/empty-state";
+import { ActionButton } from "@/components/button-group";
+import { Select } from "@/components/form-input";
 import { generateProposalAction, updateProposalStatusAction, deleteProposalAction, submitProposalApprovalAction } from "./actions";
 import type { ProposalStatus } from "@/types/deal-twin";
 
@@ -52,7 +55,11 @@ export default async function ProposalPage({
         </Card>
 
         {twin.proposals.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-slate-500">No proposals generated yet.</Card>
+          <EmptyState
+            icon="📄"
+            title="No proposals yet"
+            description="Generate a proposal from your Deal Twin and commercial position."
+          />
         ) : (
           twin.proposals
             .slice()
@@ -76,17 +83,20 @@ export default async function ProposalPage({
                   <div className="flex flex-wrap gap-1.5">
                     {PROPOSAL_STATUSES.map((s) => (
                       <form key={s} action={updateProposalStatusAction.bind(null, id, rev, p.id, s as ProposalStatus)}>
-                        <button
+                        <ActionButton
                           type="submit"
-                          className={`rounded-md px-2 py-1 text-xs font-medium ${p.status === s ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                          variant={p.status === s ? "primary" : "secondary"}
+                          size="sm"
                         >
                           {s}
-                        </button>
+                        </ActionButton>
                       </form>
                     ))}
                   </div>
                   <form action={deleteProposalAction.bind(null, id, rev, p.id)}>
-                    <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+                    <ActionButton type="submit" variant="ghost" size="sm">
+                      Delete
+                    </ActionButton>
                   </form>
                 </CardBody>
               </Card>
@@ -112,25 +122,19 @@ export default async function ProposalPage({
           <CardHeader title="Generate a proposal" subtitle="Assembled from the Deal Twin, saved solution and saved commercial position." />
           <CardBody>
             <form action={generateProposalAction.bind(null, id, rev)} className="space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">Format</label>
-                <select name="format" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-                  {PROPOSAL_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">Persona</label>
-                <select name="persona" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-                  {PROPOSAL_PERSONAS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+              <Select name="format" label="Format" required defaultValue={PROPOSAL_FORMATS[0]}>
+                {PROPOSAL_FORMATS.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </Select>
+              <Select name="persona" label="Persona" required defaultValue={PROPOSAL_PERSONAS[0]}>
+                {PROPOSAL_PERSONAS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </Select>
+              <ActionButton type="submit" variant="primary" className="w-full">
                 Generate
-              </button>
+              </ActionButton>
             </form>
           </CardBody>
         </Card>
