@@ -27,7 +27,7 @@ export function DealSelector({
                   } else {
                     newIds.delete(deal.id);
                   }
-                  const url = new URL(window.location);
+                  const url = new URL(window.location.href);
                   url.searchParams.set("ids", Array.from(newIds).join(","));
                   window.location.href = url.toString();
                 }}

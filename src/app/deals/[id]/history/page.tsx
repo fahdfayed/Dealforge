@@ -56,7 +56,7 @@ export default async function DealHistoryPage({
   }
 
   if (twin.scopeHandshake.length > 0) {
-    const completed = twin.scopeHandshake.filter((s) => s.status === "Confirmed").length;
+    const completed = twin.scopeHandshake.filter((s) => s.response === "Confirmed").length;
     events.push({
       type: "handshake-started",
       label: `Scope Handshake: ${completed}/${twin.scopeHandshake.length} confirmed`,

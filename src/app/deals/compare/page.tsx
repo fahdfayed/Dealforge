@@ -42,7 +42,7 @@ export default async function ComparePage({
   }
 
   const allDeals = await listDeals();
-  const selectedIds = new Set(deals.map((d) => d.id));
+  const selectedIds = new Set(deals.filter((d) => d !== null).map((d) => d.id));
 
   return (
     <div>
@@ -61,11 +61,13 @@ export default async function ComparePage({
             <tr className="bg-slate-50 text-left text-xs text-slate-500">
               <th className="border border-slate-200 px-3 py-2 font-medium">Metric</th>
               {deals.map((deal) => (
-                <th key={deal.id} className="border border-slate-200 px-3 py-2 font-medium">
-                  <Link href={`/deals/${deal.id}`} style={{ color: "var(--intelloger-navy)" }} className="hover:underline">
-                    {deal.twin.identity.company}
-                  </Link>
-                </th>
+                deal && (
+                  <th key={deal.id} className="border border-slate-200 px-3 py-2 font-medium">
+                    <Link href={`/deals/${deal.id}`} style={{ color: "var(--intelloger-navy)" }} className="hover:underline">
+                      {deal.twin.identity.company}
+                    </Link>
+                  </th>
+                )
               ))}
             </tr>
           </thead>
@@ -90,9 +92,11 @@ export default async function ComparePage({
               <tr key={metric.key} className="border-t border-slate-200">
                 <td className="border border-slate-200 px-3 py-2 font-medium text-slate-700">{metric.label}</td>
                 {deals.map((deal) => (
-                  <td key={deal.id} className="border border-slate-200 px-3 py-2 text-slate-600">
-                    {renderMetricValue(deal, metric.key)}
-                  </td>
+                  deal && (
+                    <td key={deal.id} className="border border-slate-200 px-3 py-2 text-slate-600">
+                      {renderMetricValue(deal, metric.key)}
+                    </td>
+                  )
                 ))}
               </tr>
             ))}

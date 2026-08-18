@@ -1,12 +1,12 @@
 // Pre-built templates for common deal scenarios
-import { createEmptyDealTwin, type DealTwin } from "@/types/deal-twin";
+import { createEmptyDealTwin, type DealTwin, ENGAGEMENT_TYPES, type EngagementType } from "@/types/deal-twin";
 
 export type DealTemplate = {
   id: string;
   name: string;
   description: string;
   industryFocus: string[];
-  engagementType: string;
+  engagementType: EngagementType | null;
 };
 
 export const DEAL_TEMPLATES: DealTemplate[] = [
@@ -15,7 +15,7 @@ export const DEAL_TEMPLATES: DealTemplate[] = [
     name: "Startup → Cloud",
     description: "Fast-track cloud migration for early-stage SaaS startup",
     industryFocus: ["SaaS", "Tech"],
-    engagementType: "Modernise",
+    engagementType: "OCI",
   },
   {
     id: "enterprise-ebs",
@@ -49,8 +49,7 @@ export function createDealFromTemplate(template: DealTemplate, company: string, 
     dealDNA: {
       ...base.dealDNA,
       engagementType: template.engagementType,
-      // Template name goes into engagement title as a hint
-      industryFocus: template.industryFocus,
+      industry: template.industryFocus[0] || "",
     },
     identity: {
       ...base.identity,

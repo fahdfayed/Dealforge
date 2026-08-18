@@ -1,6 +1,5 @@
 "use server";
 
-import { getDeal, saveDeal } from "@/lib/deal-repo";
 import { getCurrentUser } from "@/lib/identity";
 import { mutateDeal } from "@/lib/deal-mutation";
 
@@ -34,7 +33,7 @@ export async function addCommentAction(dealId: string, revision: number, text: s
     }
 
     return twin;
-  });
+  }, `/deals/${dealId}/comments`);
 }
 
 export async function deleteCommentAction(dealId: string, revision: number, commentId: string) {
@@ -52,5 +51,5 @@ export async function deleteCommentAction(dealId: string, revision: number, comm
     };
     deleteRecursive(twin.teamComments);
     return twin;
-  });
+  }, `/deals/${dealId}/comments`);
 }

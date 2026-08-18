@@ -13,7 +13,8 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
-import { mkdirSync, dirname } from "fs";
+import { mkdirSync } from "fs";
+import { dirname } from "path";
 
 const globalForDb = globalThis as unknown as { sqlite: Database.Database | undefined };
 
