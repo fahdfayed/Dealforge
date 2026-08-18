@@ -1,46 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  /* Intelloger Navy & Orange brand palette */
-  --intelloger-navy: #003d7a;
-  --intelloger-navy-light: #0052a3;
-  --intelloger-navy-lighter: #1a6db8;
-  --intelloger-orange: #ff6b35;
-  --intelloger-orange-light: #ff8555;
-  --intelloger-orange-dark: #e55a24;
+  /* Odoo ERP palette */
+  --odoo-primary: #714b67;
+  --odoo-primary-light: #8b6a7e;
+  --odoo-primary-dark: #5a3d54;
+  --odoo-accent: #0084c6;
+  --odoo-accent-light: #1a9bd4;
+  --odoo-success: #5cb85c;
+  --odoo-warning: #f0ad4e;
+  --odoo-danger: #d9534f;
+  --odoo-info: #5bc0de;
 
-  /* Neutral grays */
-  --background: #f8f9fa;
-  --foreground: #1a1a1e;
-  --slate-50: #f9fafb;
-  --slate-100: #f3f4f6;
-  --slate-200: #e5e7eb;
-  --slate-300: #d1d5db;
-  --slate-400: #9ca3af;
-  --slate-500: #6b7280;
-  --slate-600: #4b5563;
-  --slate-700: #374151;
-  --slate-800: #1f2937;
-  --slate-900: #111827;
+  /* Odoo neutrals - clean, professional grays */
+  --background: #f5f5f5;
+  --foreground: #2c2c2c;
+  --surface-light: #ffffff;
+  --surface-medium: #f8f8f8;
+  --surface-dark: #efefef;
+
+  /* Text hierarchy */
+  --text-primary: #2c2c2c;
+  --text-secondary: #595959;
+  --text-tertiary: #8d8d8d;
+  --text-disabled: #b3b3b3;
+
+  /* Borders and dividers */
+  --border-color: #dddddd;
+  --border-light: #eeeeee;
+
+  /* Status colors */
+  --status-success: #27ae60;
+  --status-warning: #e67e22;
+  --status-error: #e74c3c;
+  --status-info: #3498db;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-/* Custom utility classes for Intelloger branding */
-.brand-primary { color: var(--intelloger-navy); }
-.brand-orange { color: var(--intelloger-orange); }
-.bg-brand-primary { background-color: var(--intelloger-navy); }
-.bg-brand-orange { background-color: var(--intelloger-orange); }
-.border-brand-primary { border-color: var(--intelloger-navy); }
-.border-brand-orange { border-color: var(--intelloger-orange); }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Odoo-style scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8b8b8;
+}

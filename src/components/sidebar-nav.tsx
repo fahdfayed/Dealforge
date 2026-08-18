@@ -2,122 +2,119 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Briefcase,
-  Compass,
-  Wrench,
-  FileText,
-  ShieldCheck,
-  Library,
-  BarChart3,
-  HeartPulse,
-  Inbox,
-  Sliders,
-  Calculator,
-  Handshake,
-  ClipboardCheck,
-  Users,
-  Building2,
-  PackageCheck,
-} from "lucide-react";
+import { ChevronDown, LayoutDashboard, Briefcase, Library, BarChart3, Menu } from "lucide-react";
+import { useState } from "react";
 
-const PRIMARY_NAV = [
-  { href: "/", label: "Today", icon: LayoutDashboard },
-  { href: "/deals", label: "Deals", icon: Briefcase },
-  { href: "/proof", label: "Proof Vault", icon: Library },
-  { href: "/portfolio", label: "Portfolio", icon: BarChart3 },
-];
-
-const DEAL_NAV = [
-  { segment: "", label: "Deal Twin", icon: Compass },
-  { segment: "understand", label: "Understand", icon: Inbox },
-  { segment: "health", label: "Health details", icon: HeartPulse },
-  { segment: "sources", label: "Sources", icon: FileText },
-  { segment: "build-offer", label: "Build offer", icon: Wrench },
-  { segment: "solution", label: "Detailed solution", icon: Sliders },
-  { segment: "estimate", label: "Detailed estimate", icon: Calculator },
-  { segment: "negotiate", label: "Negotiate", icon: Handshake },
-  { segment: "commitments", label: "Commitments", icon: ShieldCheck },
-  { segment: "submission-check", label: "Submission check", icon: ClipboardCheck },
-  { segment: "client-share", label: "Client share", icon: Users },
-  { segment: "oracle", label: "Oracle coordination", icon: Building2 },
-  { segment: "proposal", label: "Proposal", icon: FileText },
-  { segment: "handover", label: "Handover", icon: PackageCheck },
+const APPS = [
+  { id: "today", label: "Today", href: "/", icon: LayoutDashboard },
+  { id: "deals", label: "Deals", href: "/deals", icon: Briefcase },
+  { id: "portfolio", label: "Portfolio", href: "/portfolio", icon: BarChart3 },
+  { id: "vault", label: "Proof Vault", href: "/proof", icon: Library },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const dealMatch = pathname.match(/^\/deals\/([^/]+)(?:\/(.*))?$/);
   const activeDealId = dealMatch && dealMatch[1] !== "new" ? dealMatch[1] : null;
+  const currentSegment = dealMatch && dealMatch[2] ? dealMatch[2].split("/")[0] : "";
+
+  const dealMenuItems = [
+    { segment: "", label: "Overview" },
+    { segment: "understand", label: "Understand" },
+    { segment: "health", label: "Health" },
+    { segment: "sources", label: "Sources" },
+    { segment: "build-offer", label: "Build Offer" },
+    { segment: "solution", label: "Solution" },
+    { segment: "estimate", label: "Estimate" },
+    { segment: "negotiate", label: "Negotiate" },
+    { segment: "commitments", label: "Commitments" },
+    { segment: "submission-check", label: "Submission Check" },
+    { segment: "client-share", label: "Client Share" },
+    { segment: "oracle", label: "Oracle" },
+    { segment: "proposal", label: "Proposal" },
+    { segment: "handover", label: "Handover" },
+  ];
 
   return (
-    <nav className="flex h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4 bg-gradient-to-r from-slate-50 to-white">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-xs font-bold text-white shadow-md">
-          <span style={{ color: 'var(--intelloger-orange)' }} className="font-black">D</span>F
-        </div>
-        <div>
-          <p className="text-sm font-bold text-slate-900">DealForge</p>
-          <p className="text-xs text-slate-500" style={{ color: 'var(--intelloger-navy)' }}>Intelloger Intelligence</p>
+    <>
+      {/* Odoo-style top bar */}
+      <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b" style={{ borderBottomColor: 'var(--border-color)' }}>
+        <div className="flex items-center h-full px-4 gap-4">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1 hover:bg-gray-100 rounded"
+            title="Toggle sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <div className="text-sm font-medium text-gray-700">DealForge</div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-4">
-        <ul className="space-y-1">
-          {PRIMARY_NAV.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            return (
-              <li key={item.href}>
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-12 bottom-0 bg-white border-r transition-all duration-200 overflow-y-auto ${
+          sidebarOpen ? "w-48" : "w-16"
+        }`}
+        style={{ borderRightColor: 'var(--border-color)' }}
+      >
+        {/* App switcher */}
+        <div className="p-3 border-b" style={{ borderBottomColor: 'var(--border-light)' }}>
+          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 px-2">Apps</div>
+          <nav className="space-y-1">
+            {APPS.map((app) => {
+              const active = pathname === app.href || (app.href !== "/" && pathname.startsWith(app.href));
+              return (
                 <Link
-                  href={item.href}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  key={app.id}
+                  href={app.href}
+                  className={`flex items-center gap-3 px-2 py-1.5 rounded text-sm transition-colors ${
                     active
-                      ? "text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
                   }`}
-                  style={active ? {
-                    backgroundColor: 'var(--intelloger-navy)',
-                  } : {}}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <app.icon size={18} className="flex-shrink-0" />
+                  {sidebarOpen && <span className="truncate">{app.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Deal menu - shown when in a deal context */}
+        {activeDealId && sidebarOpen && (
+          <div className="p-3">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 px-2">Menu</div>
+            <nav className="space-y-0.5">
+              {dealMenuItems.map((item) => (
+                <Link
+                  key={item.segment}
+                  href={`/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`}
+                  className={`block px-2 py-1.5 text-sm rounded transition-colors ${
+                    currentSegment === item.segment || (item.segment === "" && currentSegment === "")
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
                   {item.label}
                 </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        {activeDealId && (
-          <div className="mt-6">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">This deal</p>
-            <ul className="mt-2 space-y-1">
-              {DEAL_NAV.map((item) => {
-                const href = `/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`;
-                const active = pathname === href;
-                return (
-                  <li key={item.segment}>
-                    <Link
-                      href={href}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
-                        active
-                          ? "text-white shadow-sm"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
-                      style={active ? {
-                        backgroundColor: 'var(--intelloger-navy-light)',
-                      } : {}}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+              ))}
+            </nav>
           </div>
         )}
-      </div>
-    </nav>
+      </aside>
+
+      {/* Main content offset */}
+      <style jsx>{`
+        :global(body) {
+          padding-top: 3rem;
+        }
+        :global(main) {
+          margin-left: ${sidebarOpen ? "12rem" : "4rem"};
+        }
+      `}</style>
+    </>
   );
 }

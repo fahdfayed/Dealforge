@@ -6,13 +6,13 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb, PageSizes } from "pdf-lib";
 
 const BRAND = {
-  primary: rgb(0, 0.24, 0.48), // Intelloger navy (#003d7a)
-  accent: rgb(1, 0.42, 0.21), // Intelloger orange (#ff6b35)
-  ink: rgb(0.1, 0.1, 0.12),
-  muted: rgb(0.43, 0.46, 0.51),
-  line: rgb(0.86, 0.87, 0.9),
+  primary: rgb(0.44, 0.3, 0.4), // Odoo purple (#714b67)
+  accent: rgb(0, 0.52, 0.78), // Odoo blue (#0084c6)
+  ink: rgb(0.17, 0.17, 0.17),
+  muted: rgb(0.35, 0.35, 0.35),
+  line: rgb(0.93, 0.93, 0.93),
   paper: rgb(1, 1, 1),
-  lightBg: rgb(0.98, 0.98, 0.99),
+  lightBg: rgb(0.97, 0.97, 0.97),
 };
 
 const A4_PORTRAIT: [number, number] = PageSizes.A4;
@@ -66,21 +66,13 @@ export class PdfWriter {
   }
 
   private drawBrandBar(): void {
-    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 8, width: this.width, height: 8, color: BRAND.primary });
-    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 10, width: this.width * 0.15, height: 2, color: BRAND.accent });
-    this.page.drawText("INTELLOGER", {
+    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 6, width: this.width, height: 6, color: BRAND.primary });
+    this.page.drawText("DealForge", {
       x: MARGIN,
-      y: this.pageSize[1] - 26,
-      size: 9,
+      y: this.pageSize[1] - 24,
+      size: 10,
       font: this.bold,
       color: BRAND.primary,
-    });
-    this.page.drawText("DealForge", {
-      x: MARGIN + 85,
-      y: this.pageSize[1] - 26,
-      size: 9,
-      font: this.font,
-      color: BRAND.accent,
     });
     this.y = this.pageSize[1] - 50;
   }

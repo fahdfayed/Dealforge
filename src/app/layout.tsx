@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Intelloger DealForge",
+  title: "DealForge",
   description:
     "The intelligence layer between the first client conversation and successful project delivery.",
 };
@@ -23,15 +23,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="flex h-full min-h-screen">
+      <body>
         <SidebarNav />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-6xl px-8 py-8">{children}</div>
-          </main>
-        </div>
+        <main className="min-h-screen bg-gray-50">
+          <div className="px-6 py-6">{children}</div>
+        </main>
       </body>
     </html>
   );

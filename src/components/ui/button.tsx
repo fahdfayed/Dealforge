@@ -8,69 +8,63 @@ export function Button({
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "danger" | "outline";
 }) {
-  const baseStyles = "rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200";
+  const baseStyles = "px-3 py-1.5 text-sm font-medium rounded border transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed";
 
-  const variants = {
-    primary: "text-white shadow-md hover:shadow-lg" + (props.disabled ? " opacity-60 cursor-not-allowed" : ""),
-    secondary: "text-slate-700 bg-slate-100 hover:bg-slate-200",
-    danger: "text-white hover:shadow-md",
-    outline: "border border-slate-300 text-slate-700 hover:bg-slate-50",
+  const variantStyles = {
+    primary: {
+      backgroundColor: "var(--odoo-accent)",
+      color: "white",
+      borderColor: "var(--odoo-accent)",
+    },
+    secondary: {
+      backgroundColor: "var(--surface-medium)",
+      color: "var(--text-primary)",
+      borderColor: "var(--border-color)",
+    },
+    danger: {
+      backgroundColor: "var(--odoo-danger)",
+      color: "white",
+      borderColor: "var(--odoo-danger)",
+    },
+    outline: {
+      backgroundColor: "transparent",
+      color: "var(--text-primary)",
+      borderColor: "var(--border-color)",
+    },
   };
 
-  const primaryStyle = props.disabled
-    ? {}
-    : {
-        backgroundColor: "var(--intelloger-navy)",
-      };
-
-  const primaryHoverStyle = !props.disabled
-    ? {
-        backgroundColor: "var(--intelloger-navy-light)",
-      }
-    : {};
-
-  const dangerStyle = props.disabled
-    ? {}
-    : {
-        backgroundColor: "#ef4444",
-      };
-
-  const dangerHoverStyle = !props.disabled
-    ? {
-        backgroundColor: "#dc2626",
-      }
-    : {};
-
-  const getStyleForVariant = () => {
-    if (variant === "primary") {
-      return primaryStyle;
-    } else if (variant === "danger") {
-      return dangerStyle;
+  const getHoverStyle = (v: "primary" | "secondary" | "danger" | "outline") => {
+    if (props.disabled) return {};
+    switch (v) {
+      case "primary":
+        return { backgroundColor: "var(--odoo-accent-light)" };
+      case "secondary":
+        return { backgroundColor: "var(--surface-dark)" };
+      case "danger":
+        return { backgroundColor: "var(--odoo-danger-hover, #c23321)" };
+      case "outline":
+        return { backgroundColor: "var(--surface-light)" };
+      default:
+        return {};
     }
-    return {};
   };
+
+  const style = variantStyles[variant];
 
   return (
     <button
       {...props}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-      style={getStyleForVariant()}
+      className={`${baseStyles} ${className}`}
+      style={style}
       onMouseEnter={(e) => {
-        if (variant === "primary" && !props.disabled) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            "var(--intelloger-navy-light)";
-        } else if (variant === "danger" && !props.disabled) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#dc2626";
+        if (!props.disabled) {
+          const hoverStyle = getHoverStyle(variant);
+          Object.assign((e.currentTarget as HTMLButtonElement).style, hoverStyle);
         }
         props.onMouseEnter?.(e);
       }}
       onMouseLeave={(e) => {
-        if (variant === "primary" && !props.disabled) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            "var(--intelloger-navy)";
-        } else if (variant === "danger" && !props.disabled) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ef4444";
-        }
+        Object.assign((e.currentTarget as HTMLButtonElement).style, style);
         props.onMouseLeave?.(e);
       }}
     >
