@@ -304,6 +304,14 @@ export type AllianceAction = {
 export type CoordinationEvent = { id: string; label: string; occurredAt: string };
 export type CoordinationSignal = { id: string; label: string; detectedAt: string };
 
+export type TeamComment = {
+  id: string;
+  author: string;
+  text: string;
+  createdAt: string;
+  replies: TeamComment[];
+};
+
 export type DealTwin = {
   identity: Identity;
   commercialHeadline: CommercialHeadline;
@@ -322,6 +330,7 @@ export type DealTwin = {
   allianceActions: AllianceAction[];
   coordinationEvents: CoordinationEvent[];
   coordinationSignals: CoordinationSignal[];
+  teamComments: TeamComment[];
 };
 
 // A Deal is the deal_states row: revision-controlled envelope around a
@@ -408,6 +417,7 @@ export function createEmptyDealTwin(seed: { company: string; owner: string }): D
     allianceActions: [],
     coordinationEvents: [],
     coordinationSignals: [],
+    teamComments: [],
   };
 }
 
