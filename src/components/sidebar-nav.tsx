@@ -53,11 +53,13 @@ export function SidebarNav() {
 
   return (
     <nav className="flex h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">DF</div>
+      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4 bg-gradient-to-r from-slate-50 to-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-xs font-bold text-white shadow-md">
+          <span style={{ color: 'var(--intelloger-orange)' }} className="font-black">D</span>F
+        </div>
         <div>
-          <p className="text-sm font-semibold text-slate-900">DealForge</p>
-          <p className="text-xs text-slate-400">by Intelloger — V22</p>
+          <p className="text-sm font-bold text-slate-900">DealForge</p>
+          <p className="text-xs text-slate-500" style={{ color: 'var(--intelloger-navy)' }}>Intelloger Intelligence</p>
         </div>
       </div>
 
@@ -69,9 +71,14 @@ export function SidebarNav() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    active ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? "text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
+                  style={active ? {
+                    backgroundColor: 'var(--intelloger-navy)',
+                  } : {}}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
@@ -92,9 +99,14 @@ export function SidebarNav() {
                   <li key={item.segment}>
                     <Link
                       href={href}
-                      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                        active ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
+                        active
+                          ? "text-white shadow-sm"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
+                      style={active ? {
+                        backgroundColor: 'var(--intelloger-navy-light)',
+                      } : {}}
                     >
                       <item.icon className="h-4 w-4" />
                       {item.label}

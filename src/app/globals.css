@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f5f7;
-  --foreground: #14161a;
+  /* Intelloger Navy & Orange brand palette */
+  --intelloger-navy: #003d7a;
+  --intelloger-navy-light: #0052a3;
+  --intelloger-navy-lighter: #1a6db8;
+  --intelloger-orange: #ff6b35;
+  --intelloger-orange-light: #ff8555;
+  --intelloger-orange-dark: #e55a24;
+
+  /* Neutral grays */
+  --background: #f8f9fa;
+  --foreground: #1a1a1e;
+  --slate-50: #f9fafb;
+  --slate-100: #f3f4f6;
+  --slate-200: #e5e7eb;
+  --slate-300: #d1d5db;
+  --slate-400: #9ca3af;
+  --slate-500: #6b7280;
+  --slate-600: #4b5563;
+  --slate-700: #374151;
+  --slate-800: #1f2937;
+  --slate-900: #111827;
 }
 
 @theme inline {
@@ -17,3 +36,11 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Custom utility classes for Intelloger branding */
+.brand-primary { color: var(--intelloger-navy); }
+.brand-orange { color: var(--intelloger-orange); }
+.bg-brand-primary { background-color: var(--intelloger-navy); }
+.bg-brand-orange { background-color: var(--intelloger-orange); }
+.border-brand-primary { border-color: var(--intelloger-navy); }
+.border-brand-orange { border-color: var(--intelloger-orange); }

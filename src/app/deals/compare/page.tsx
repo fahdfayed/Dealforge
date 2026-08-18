@@ -3,7 +3,7 @@ import { getDeal, listDeals } from "@/lib/deal-repo";
 import { computeProbability, computeDimensions, discoveryCoverage } from "@/lib/scoring";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { DealSelector } from "./deal-selector";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default async function ComparePage({
         <Card>
           <CardBody>
             <p className="mb-4 text-sm text-slate-600">
-              Navigate to the <Link href="/deals" className="font-medium text-indigo-600 hover:text-indigo-500">Deals list</Link>, select deals, and come back here to compare them.
+              Navigate to the <Link href="/deals" className="font-medium" style={{ color: "var(--intelloger-navy)" }}>Deals list</Link>, select deals, and come back here to compare them.
             </p>
           </CardBody>
         </Card>
@@ -62,7 +62,7 @@ export default async function ComparePage({
               <th className="border border-slate-200 px-3 py-2 font-medium">Metric</th>
               {deals.map((deal) => (
                 <th key={deal.id} className="border border-slate-200 px-3 py-2 font-medium">
-                  <Link href={`/deals/${deal.id}`} className="text-indigo-600 hover:underline">
+                  <Link href={`/deals/${deal.id}`} style={{ color: "var(--intelloger-navy)" }} className="hover:underline">
                     {deal.twin.identity.company}
                   </Link>
                 </th>
@@ -100,47 +100,6 @@ export default async function ComparePage({
         </table>
       </div>
     </div>
-  );
-}
-
-"use client";
-
-function DealSelector({
-  allDeals,
-  selectedIds,
-}: {
-  allDeals: Awaited<ReturnType<typeof listDeals>>;
-  selectedIds: Set<string>;
-}) {
-  return (
-    <Card className="mb-6">
-      <CardBody>
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Add or remove deals</p>
-        <div className="flex flex-wrap gap-2">
-          {allDeals.map((deal) => (
-            <label key={deal.id} className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-              <input
-                type="checkbox"
-                defaultChecked={selectedIds.has(deal.id)}
-                onChange={(e) => {
-                  const newIds = new Set(selectedIds);
-                  if (e.target.checked) {
-                    newIds.add(deal.id);
-                  } else {
-                    newIds.delete(deal.id);
-                  }
-                  const url = new URL(window.location);
-                  url.searchParams.set("ids", Array.from(newIds).join(","));
-                  window.location.href = url.toString();
-                }}
-                className="rounded"
-              />
-              {deal.twin.identity.company}
-            </label>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
   );
 }
 

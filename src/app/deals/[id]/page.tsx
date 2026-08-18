@@ -4,6 +4,7 @@ import { getDeal } from "@/lib/deal-repo";
 import { getRecommendedActions, getSafetyMode, computeProbability, computeDimensions } from "@/lib/scoring";
 import { STAGES, ENGAGEMENT_TYPES, COMMERCIAL_MODELS, CLIENT_TYPES, MOMENTUM_STATES } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { DealTwinPdfButton } from "@/components/pdf-buttons";
 import { updateDealCore } from "./actions";
@@ -108,10 +109,8 @@ export default async function DealTwinPage({
                   </div>
                 </div>
 
-                <div className="flex justify-end border-t border-slate-100 pt-4">
-                  <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
-                    Save
-                  </button>
+                <div className="flex justify-end border-t border-slate-200 pt-4">
+                  <Button type="submit">Save</Button>
                 </div>
               </form>
             </CardBody>
@@ -158,14 +157,14 @@ export default async function DealTwinPage({
                 View history
               </Link>
               <form action={duplicateDealAction.bind(null, deal.id)}>
-                <button type="submit" className="w-full rounded-md border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Button type="submit" variant="outline" className="w-full">
                   Duplicate deal
-                </button>
+                </Button>
               </form>
               <form action={deleteDealAction.bind(null, deal.id)}>
-                <button type="submit" className="w-full rounded-md border border-rose-200 px-3.5 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50">
+                <Button type="submit" variant="danger" className="w-full">
                   Delete deal
-                </button>
+                </Button>
               </form>
             </CardBody>
           </Card>

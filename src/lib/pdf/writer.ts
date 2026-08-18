@@ -6,11 +6,13 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb, PageSizes } from "pdf-lib";
 
 const BRAND = {
-  primary: rgb(0.24, 0.16, 0.62), // indigo
-  ink: rgb(0.09, 0.09, 0.11),
-  muted: rgb(0.42, 0.45, 0.5),
-  line: rgb(0.85, 0.86, 0.89),
+  primary: rgb(0, 0.24, 0.48), // Intelloger navy (#003d7a)
+  accent: rgb(1, 0.42, 0.21), // Intelloger orange (#ff6b35)
+  ink: rgb(0.1, 0.1, 0.12),
+  muted: rgb(0.43, 0.46, 0.51),
+  line: rgb(0.86, 0.87, 0.9),
   paper: rgb(1, 1, 1),
+  lightBg: rgb(0.98, 0.98, 0.99),
 };
 
 const A4_PORTRAIT: [number, number] = PageSizes.A4;
@@ -64,13 +66,21 @@ export class PdfWriter {
   }
 
   private drawBrandBar(): void {
-    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 6, width: this.width, height: 6, color: BRAND.primary });
-    this.page.drawText("INTELLOGER DEALFORGE", {
+    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 8, width: this.width, height: 8, color: BRAND.primary });
+    this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 10, width: this.width * 0.15, height: 2, color: BRAND.accent });
+    this.page.drawText("INTELLOGER", {
       x: MARGIN,
-      y: this.pageSize[1] - 28,
-      size: 8,
+      y: this.pageSize[1] - 26,
+      size: 9,
       font: this.bold,
-      color: BRAND.muted,
+      color: BRAND.primary,
+    });
+    this.page.drawText("DealForge", {
+      x: MARGIN + 85,
+      y: this.pageSize[1] - 26,
+      size: 9,
+      font: this.font,
+      color: BRAND.accent,
     });
     this.y = this.pageSize[1] - 50;
   }
@@ -136,7 +146,7 @@ export class PdfWriter {
     const lines = this.wrapText(text, this.font, size, this.contentWidth - 14);
     lines.forEach((line, i) => {
       this.ensureSpace(size + 5);
-      if (i === 0) this.page.drawText("•", { x: MARGIN, y: this.y, size, font: this.bold, color: BRAND.primary });
+      if (i === 0) this.page.drawText("•", { x: MARGIN, y: this.y, size, font: this.bold, color: BRAND.accent });
       this.page.drawText(line, { x: MARGIN + 14, y: this.y, size, font: this.font, color: BRAND.ink });
       this.y -= size + 5;
     });
