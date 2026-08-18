@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
 import { getRecommendedActions, getSafetyMode, computeProbability, computeDimensions } from "@/lib/scoring";
@@ -150,6 +151,9 @@ export default async function DealTwinPage({
           <Card>
             <CardBody className="space-y-2">
               <DealTwinPdfButton deal={deal} />
+              <Link href={`/deals/${deal.id}/history`} className="block rounded-md border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 text-center">
+                View history
+              </Link>
               <form action={duplicateDealAction.bind(null, deal.id)}>
                 <button type="submit" className="w-full rounded-md border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Duplicate deal
