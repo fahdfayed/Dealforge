@@ -151,7 +151,7 @@ export default async function DealTwinPage({
             <CardBody className="space-y-2">
               <DealTwinPdfButton deal={deal} />
               <Link href={`/deals/${deal.id}/comments`} className="block rounded-md border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 text-center">
-                Comments ({deal.twin.teamComments.length})
+                Comments ({deal.twin.teamComments?.length || 0})
               </Link>
               <Link href={`/deals/${deal.id}/history`} className="block rounded-md border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 text-center">
                 View history
