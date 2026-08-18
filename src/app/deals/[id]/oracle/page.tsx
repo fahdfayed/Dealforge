@@ -41,9 +41,9 @@ export default async function OracleCoordinationPage({ params }: { params: Promi
                 <form action={toggleAllianceActionAction.bind(null, id, rev, a.id)}>
                   <button
                     type="submit"
-                    className={`rounded-md px-2 py-1 text-xs font-medium ${a.completed ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                    className={`rounded-md px-2 py-1 text-xs font-medium ${a.status === "Completed" ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
                   >
-                    {a.completed ? "Complete" : "Mark complete"}
+                    {a.status === "Completed" ? "Complete" : "Mark complete"}
                   </button>
                 </form>
               </div>

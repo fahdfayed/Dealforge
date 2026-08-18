@@ -311,7 +311,7 @@ export function getRecommendedActions(twin: DealTwin): RecommendedAction[] {
     actions.push({ id: `gate-${gate.id}`, label: `Complete gate: ${gate.label}`, severity: "high" });
   }
 
-  const pendingAlliance = twin.allianceActions.filter((a) => !a.completed);
+  const pendingAlliance = twin.allianceActions.filter((a) => a.status !== "Completed");
   for (const a of pendingAlliance.slice(0, 2)) {
     actions.push({ id: `oracle-${a.id}`, label: `Resolve Oracle dependency: ${a.action}`, severity: "medium" });
   }

@@ -69,7 +69,7 @@ export function evaluateSubmissionCheck(twin: DealTwin): { issues: CheckIssue[];
     });
   }
 
-  const pendingAlliance = twin.allianceActions.filter((a) => !a.completed);
+  const pendingAlliance = twin.allianceActions.filter((a) => a.status !== "Completed");
   if (pendingAlliance.length > 0) {
     issues.push({ id: "oracle-actions", label: `${pendingAlliance.length} unresolved Oracle action(s)`, lens: "Oracle", blocking: false });
   }

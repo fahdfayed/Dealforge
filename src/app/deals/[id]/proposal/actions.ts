@@ -1,7 +1,7 @@
 "use server";
 
 import { mutateDeal } from "@/lib/deal-mutation";
-import type { ProposalFormat, ProposalPersona, ProposalStatus } from "@/types/deal-twin";
+import type { ProposalFormat, ProposalPersona, ProposalStatus, ApprovalRecord } from "@/types/deal-twin";
 
 const path = (dealId: string) => `/deals/${dealId}/proposal`;
 
@@ -31,6 +31,7 @@ export async function generateProposalAction(dealId: string, expectedRevision: n
             createdAt: new Date().toISOString(),
             status: "Draft" as ProposalStatus,
             commercialScenarioId: twin.savedCommercialScenarioId,
+            approvals: [],
           },
         ],
       };
@@ -50,4 +51,39 @@ export async function updateProposalStatusAction(dealId: string, expectedRevisio
 
 export async function deleteProposalAction(dealId: string, expectedRevision: number, proposalId: string) {
   await mutateDeal(dealId, expectedRevision, (twin) => ({ ...twin, proposals: twin.proposals.filter((p) => p.id !== proposalId) }), path(dealId));
+}
+
+export async function submitProposalApprovalAction(
+  dealId: string,
+  expectedRevision: number,
+  proposalId: string,
+  decision: "approved" | "rejected",
+  comment: string,
+  approvedBy: string
+) {
+  await mutateDeal(
+    dealId,
+    expectedRevision,
+    (twin) => ({
+      ...twin,
+      proposals: twin.proposals.map((p) => {
+        if (p.id === proposalId) {
+          const approval: ApprovalRecord = {
+            id: crypto.randomUUID(),
+            approvedBy,
+            decision,
+            comment,
+            decidedAt: new Date().toISOString(),
+          };
+          return {
+            ...p,
+            approvals: [...p.approvals, approval],
+            status: decision === "approved" ? ("Approved" as ProposalStatus) : ("Pending approval" as ProposalStatus),
+          };
+        }
+        return p;
+      }),
+    }),
+    path(dealId)
+  );
 }

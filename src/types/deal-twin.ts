@@ -207,10 +207,14 @@ export type CommercialScenarioInputs = {
   travelPerOnSiteDay: number;
 };
 
+export const SCENARIO_STATUSES = ["Draft", "Pending approval", "Approved", "Rejected"] as const;
+export type ScenarioStatus = (typeof SCENARIO_STATUSES)[number];
+
 export type CommercialScenario = {
   id: string;
   name: string;
   savedAt: string;
+  status: ScenarioStatus;
   inputs: CommercialScenarioInputs;
   adjustedEffortDays: number;
   internalCost: number;
@@ -220,6 +224,7 @@ export type CommercialScenario = {
   p50Days: number;
   p80Days: number;
   approvalExceptions: string[];
+  approvals: ApprovalRecord[];
 };
 
 export const PROPOSAL_FORMATS = ["Formal document", "Executive presentation"] as const;
@@ -238,6 +243,14 @@ export type ProposalPersona = (typeof PROPOSAL_PERSONAS)[number];
 export const PROPOSAL_STATUSES = ["Draft", "Pending approval", "Approved", "Sent"] as const;
 export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
 
+export type ApprovalRecord = {
+  id: string;
+  approvedBy: string;
+  decision: "approved" | "rejected";
+  comment: string;
+  decidedAt: string;
+};
+
 export type ProposalDraft = {
   id: string;
   persona: ProposalPersona;
@@ -250,6 +263,7 @@ export type ProposalDraft = {
   createdAt: string;
   status: ProposalStatus;
   commercialScenarioId: string | null;
+  approvals: ApprovalRecord[];
 };
 
 export const PROMISE_CLASSIFICATIONS = [
@@ -292,13 +306,18 @@ export type ClientRoomState = {
   meetingRequests: { id: string; note: string; requestedAt: string }[];
 };
 
+export const ACTION_STATUSES = ["Open", "In progress", "Completed", "Cancelled"] as const;
+export type ActionStatus = (typeof ACTION_STATUSES)[number];
+
 export type AllianceAction = {
   id: string;
   action: string;
   owner: string;
   dueWindow: string;
-  completed: boolean;
+  status: ActionStatus;
   completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type CoordinationEvent = { id: string; label: string; occurredAt: string };
@@ -407,9 +426,9 @@ export function createEmptyDealTwin(seed: { company: string; owner: string }): D
         decisionAsk: "",
       },
     },
-    commercialScenarios: [],
+    commercialScenarios: [] as CommercialScenario[],
     savedCommercialScenarioId: null,
-    proposals: [],
+    proposals: [] as ProposalDraft[],
     promises: [],
     scopeHandshake: [],
     proofLinks: [],

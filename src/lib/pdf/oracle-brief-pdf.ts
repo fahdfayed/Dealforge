@@ -25,7 +25,7 @@ export async function generateOracleBriefPdf(deal: Deal): Promise<Uint8Array> {
     writer.paragraph("No joint actions recorded yet.");
   } else {
     for (const a of twin.allianceActions) {
-      writer.bullet(`${a.action} — owner: ${a.owner || "unassigned"}, due: ${a.dueWindow || "—"}, ${a.completed ? "complete" : "pending"}`);
+      writer.bullet(`${a.action} — owner: ${a.owner || "unassigned"}, due: ${a.dueWindow || "—"}, status: ${a.status.toLowerCase()}`);
     }
   }
 

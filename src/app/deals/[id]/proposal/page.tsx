@@ -8,7 +8,8 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { ProposalPdfButtons } from "@/components/pdf-buttons";
-import { generateProposalAction, updateProposalStatusAction, deleteProposalAction } from "./actions";
+import { ApprovalWorkflow } from "@/components/approval-workflow";
+import { generateProposalAction, updateProposalStatusAction, deleteProposalAction, submitProposalApprovalAction } from "./actions";
 import type { ProposalStatus } from "@/types/deal-twin";
 
 const STATUS_COLOR: Record<string, string> = { Draft: "slate", "Pending approval": "amber", Approved: "emerald", Sent: "sky" };
@@ -65,6 +66,13 @@ export default async function ProposalPage({
                 />
                 <CardBody className="space-y-3">
                   <ProposalPdfButtons deal={deal} proposal={p} proof={matchedProof} />
+                  <ApprovalWorkflow
+                    approvals={p.approvals}
+                    status={p.status}
+                    onSubmit={async (decision, comment, approver) => {
+                      await submitProposalApprovalAction(id, rev, p.id, decision, comment, approver);
+                    }}
+                  />
                   <div className="flex flex-wrap gap-1.5">
                     {PROPOSAL_STATUSES.map((s) => (
                       <form key={s} action={updateProposalStatusAction.bind(null, id, rev, p.id, s as ProposalStatus)}>

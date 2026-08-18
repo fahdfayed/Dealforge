@@ -4,7 +4,7 @@
 import type { AllianceAction, DealTwin } from "@/types/deal-twin";
 
 export function allianceHealth(oracleScore: number, actions: AllianceAction[]): { score: number; label: string } {
-  const completionRatio = actions.length ? (actions.filter((a) => a.completed).length / actions.length) * 100 : 50;
+  const completionRatio = actions.length ? (actions.filter((a) => a.status === "Completed").length / actions.length) * 100 : 50;
   const score = Math.round((oracleScore + completionRatio) / 2);
   const label = score >= 75 ? "Strong alignment" : score >= 50 ? "Developing alignment" : score >= 25 ? "Weak alignment" : "No alignment established";
   return { score, label };
@@ -19,7 +19,7 @@ export function generateOracleRationale(twin: DealTwin): string {
   }
   const registration = twin.answers.find((a) => a.questionId === "std-19")?.values[0];
   lines.push(`Oracle registration status: ${registration ?? "not yet recorded"}.`);
-  const pending = twin.allianceActions.filter((a) => !a.completed);
+  const pending = twin.allianceActions.filter((a) => a.status !== "Completed");
   if (pending.length > 0) {
     lines.push(`Unresolved Oracle dependencies: ${pending.map((a) => a.action).join("; ")}.`);
   } else if (twin.allianceActions.length > 0) {

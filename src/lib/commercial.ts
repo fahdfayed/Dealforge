@@ -42,6 +42,7 @@ export function computeCommercialScenario(name: string, inputs: CommercialScenar
     id: crypto.randomUUID(),
     name,
     savedAt: new Date().toISOString(),
+    status: "Draft" as const,
     inputs,
     adjustedEffortDays,
     internalCost,
@@ -51,6 +52,7 @@ export function computeCommercialScenario(name: string, inputs: CommercialScenar
     p50Days,
     p80Days,
     approvalExceptions,
+    approvals: [],
   };
 }
 

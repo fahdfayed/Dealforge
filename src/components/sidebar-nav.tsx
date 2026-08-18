@@ -30,6 +30,7 @@ export function SidebarNav() {
     { segment: "negotiate", label: "Negotiate" },
     { segment: "commitments", label: "Commitments" },
     { segment: "submission-check", label: "Submission Check" },
+    { segment: "actions", label: "Actions" },
     { segment: "client-share", label: "Client Share" },
     { segment: "oracle", label: "Oracle" },
     { segment: "proposal", label: "Proposal" },
