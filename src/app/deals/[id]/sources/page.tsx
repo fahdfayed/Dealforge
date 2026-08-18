@@ -3,6 +3,8 @@ import { getDeal } from "@/lib/deal-repo";
 import { listSources, SOURCE_CLASSES } from "@/lib/sources-repo";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ActionButton } from "@/components/button-group";
+import { Select, Textarea } from "@/components/form-input";
 import { addSourceAction, deleteSourceAction } from "./actions";
 
 export default async function SourcesPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,9 +42,9 @@ export default async function SourcesPage({ params }: { params: Promise<{ id: st
                 </div>
                 {s.textExcerpt && !s.fileName && <p className="mt-2 text-xs text-slate-600">{s.textExcerpt}</p>}
                 <form action={deleteSourceAction.bind(null, id, s.id)} className="mt-2">
-                  <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">
+                  <ActionButton type="submit" variant="ghost" size="sm">
                     Remove
-                  </button>
+                  </ActionButton>
                 </form>
               </div>
             ))}
@@ -55,24 +57,27 @@ export default async function SourcesPage({ params }: { params: Promise<{ id: st
           <CardHeader title="Add a source" />
           <CardBody>
             <form action={addAction} className="space-y-3">
-              <select name="sourceClass" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+              <Select name="sourceClass" label="Type" defaultValue={SOURCE_CLASSES[0]}>
                 {SOURCE_CLASSES.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
-              </select>
-              <input type="file" name="file" className="w-full text-sm" />
-              <p className="text-xs text-slate-400">Max 10 MB. Text-like files retain up to 120,000 characters.</p>
-              <textarea
+              </Select>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">File</label>
+                <input type="file" name="file" className="w-full text-sm" />
+                <p className="mt-1 text-xs text-slate-400">Max 10 MB. Text files retain up to 120k chars.</p>
+              </div>
+              <Textarea
                 name="note"
+                label="Or transcript/note"
                 rows={3}
-                placeholder="Or paste a note / transcript to store as text (no file)"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Paste content to store as text"
               />
-              <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+              <ActionButton type="submit" variant="primary" className="w-full">
                 Store source
-              </button>
+              </ActionButton>
             </form>
           </CardBody>
         </Card>
