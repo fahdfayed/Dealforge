@@ -6,6 +6,8 @@ import { compareOptions, computeSolutionPricing, recommendPath } from "@/lib/sol
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
+import { ActionButton } from "@/components/button-group";
+import { Input } from "@/components/form-input";
 import { loadCatalogAction, choosePathAction, updateScopeAction, saveCommercialBaseAction } from "./actions";
 import type { SolutionPath } from "@/types/deal-twin";
 
@@ -46,9 +48,9 @@ export default async function BuildOfferPage({
           <CardBody className="flex items-center justify-between">
             <p className="text-sm text-slate-600">No starter capabilities loaded yet for {twin.dealDNA.engagementType}.</p>
             <form action={loadCatalogAction.bind(null, deal.id, deal.revision)}>
-              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+              <ActionButton type="submit" variant="primary">
                 Load starter capabilities
-              </button>
+              </ActionButton>
             </form>
           </CardBody>
         </Card>
@@ -71,9 +73,14 @@ export default async function BuildOfferPage({
                     <div className="flex justify-between"><dt>Value coverage</dt><dd>{opt.valueCoverage}%</dd></div>
                   </dl>
                   <form action={choosePathAction.bind(null, deal.id, deal.revision, opt.path as SolutionPath)} className="mt-3">
-                    <button type="submit" className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                    <ActionButton
+                      type="submit"
+                      variant={twin.solution.selectedPath === opt.path ? "primary" : "secondary"}
+                      size="sm"
+                      className="w-full"
+                    >
                       {twin.solution.selectedPath === opt.path ? "Selected" : "Select"}
-                    </button>
+                    </ActionButton>
                   </form>
                 </div>
               ))}
@@ -93,9 +100,9 @@ export default async function BuildOfferPage({
                     <Badge color={c.priority === "Required" ? "rose" : c.priority === "Recommended" ? "amber" : "slate"}>{c.priority}</Badge>
                   </label>
                 ))}
-                <button type="submit" className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                <ActionButton type="submit" variant="primary">
                   Update scope
-                </button>
+                </ActionButton>
               </form>
             </CardBody>
           </Card>
@@ -114,17 +121,19 @@ export default async function BuildOfferPage({
                 <NumField label="Internal cost/day" name="internalDailyCost" defaultValue={650} />
                 <NumField label="Customer rate/day" name="customerDailyRate" defaultValue={1200} />
                 <div className="col-span-2 flex items-end">
-                  <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+                  <ActionButton type="submit" variant="primary" className="w-full">
                     Save working offer
-                  </button>
+                  </ActionButton>
                 </div>
               </form>
             </CardBody>
           </Card>
 
           <div className="flex justify-end">
-            <Link href={`/deals/${deal.id}/proposal`} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Continue to Proposal →
+            <Link href={`/deals/${deal.id}/proposal`}>
+              <ActionButton variant="secondary">
+                Continue to Proposal →
+              </ActionButton>
             </Link>
           </div>
         </>
@@ -134,10 +143,5 @@ export default async function BuildOfferPage({
 }
 
 function NumField({ label, name, defaultValue }: { label: string; name: string; defaultValue: number }) {
-  return (
-    <div>
-      <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
-      <input type="number" name={name} defaultValue={defaultValue} className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm" />
-    </div>
-  );
+  return <Input type="number" name={name} label={label} defaultValue={defaultValue} />;
 }

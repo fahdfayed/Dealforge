@@ -3,6 +3,7 @@ import { getDeal } from "@/lib/deal-repo";
 import { evaluateSubmissionCheck, type CheckLens } from "@/lib/submission-check";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
 
 const LENSES: CheckLens[] = ["Core", "CFO", "CIO", "Procurement", "Delivery", "Oracle"];
 
@@ -46,7 +47,11 @@ export default async function SubmissionCheckPage({ params }: { params: Promise<
       })}
 
       {issues.length === 0 && (
-        <Card className="p-8 text-center text-sm text-slate-500">No issues found across any lens.</Card>
+        <EmptyState
+          icon="✓"
+          title="No issues found"
+          description="All submission checks passed across all perspectives."
+        />
       )}
     </div>
   );

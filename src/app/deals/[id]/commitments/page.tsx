@@ -5,6 +5,8 @@ import { COMMERCIAL_TRACES, PROMISE_CLASSIFICATIONS } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
+import { ActionButton } from "@/components/button-group";
+import { Input, Textarea, Select } from "@/components/form-input";
 import { addPromiseAction, addCandidatePromiseAction, updatePromiseTraceAction, removePromiseAction } from "./actions";
 
 const TRACE_COLOR: Record<string, string> = { Priced: "emerald", "Not priced": "rose", Pending: "amber", "Not applicable": "slate" };
@@ -41,7 +43,7 @@ export default async function CommitmentsPage({
         <Card>
           <CardHeader title="Promise Ledger" subtitle="Every statement traced into source, owner, scope and price." />
           <CardBody className="space-y-3">
-            {twin.promises.length === 0 && <p className="text-sm text-slate-500">No promises recorded yet.</p>}
+            {twin.promises.length === 0 && <p className="text-sm text-slate-500">No promises recorded yet. Add them from your Deal Twin or record them manually.</p>}
             {twin.promises.map((p) => (
               <div key={p.id} className="rounded-md border border-slate-100 px-3 py-2.5">
                 <div className="flex items-start justify-between gap-3">
@@ -55,18 +57,21 @@ export default async function CommitmentsPage({
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {COMMERCIAL_TRACES.map((t) => (
                     <form key={t} action={updatePromiseTraceAction.bind(null, id, rev, p.id, t)}>
-                      <button
+                      <ActionButton
                         type="submit"
-                        className={`rounded-md px-2 py-1 text-xs font-medium ${p.commercialTrace === t ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                        variant={p.commercialTrace === t ? "primary" : "secondary"}
+                        size="sm"
                       >
                         {t}
-                      </button>
+                      </ActionButton>
                     </form>
                   ))}
                   <Badge color={TRACE_COLOR[p.commercialTrace]}>{p.commercialTrace}</Badge>
                 </div>
                 <form action={removePromiseAction.bind(null, id, rev, p.id)} className="mt-1.5">
-                  <button type="submit" className="text-xs text-slate-400 hover:text-rose-600">Remove</button>
+                  <ActionButton type="submit" variant="ghost" size="sm">
+                    Remove
+                  </ActionButton>
                 </form>
               </div>
             ))}
@@ -81,9 +86,9 @@ export default async function CommitmentsPage({
                 <div key={i} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm">
                   <span>{c.statement} <span className="text-xs text-slate-400">({c.classification})</span></span>
                   <form action={addCandidatePromiseAction.bind(null, id, rev, c.statement, c.classification, c.source)}>
-                    <button type="submit" className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                    <ActionButton type="submit" variant="secondary" size="sm">
                       Add
-                    </button>
+                    </ActionButton>
                   </form>
                 </div>
               ))}
@@ -97,22 +102,22 @@ export default async function CommitmentsPage({
           <CardHeader title="Record a promise" />
           <CardBody>
             <form action={addPromiseAction.bind(null, id, rev)} className="space-y-3">
-              <textarea name="statement" required rows={3} placeholder="What was said or promised?" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <select name="classification" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+              <Textarea name="statement" label="Statement" required rows={3} placeholder="What was said or promised?" />
+              <Select name="classification" label="Classification" required defaultValue={PROMISE_CLASSIFICATIONS[0]}>
                 {PROMISE_CLASSIFICATIONS.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
-              </select>
-              <input name="source" placeholder="Source" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <input name="owner" placeholder="Delivery owner" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <select name="commercialTrace" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+              </Select>
+              <Input name="source" label="Source" placeholder="e.g., proposal, RFP" />
+              <Input name="owner" label="Delivery owner" placeholder="Who is accountable?" />
+              <Select name="commercialTrace" label="Commercial trace" defaultValue={COMMERCIAL_TRACES[0]}>
                 {COMMERCIAL_TRACES.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
-              </select>
-              <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+              </Select>
+              <ActionButton type="submit" variant="primary" className="w-full">
                 Add promise
-              </button>
+              </ActionButton>
             </form>
           </CardBody>
         </Card>
