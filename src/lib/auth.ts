@@ -32,6 +32,8 @@ export async function signup(
   password: string
 ): Promise<{ user: TeamMember; sessionToken: string } | { error: string }> {
   try {
+    console.log("[signup] Starting signup for email:", email);
+
     const existingUser = await db
       .select()
       .from(teamMembers)
@@ -39,13 +41,21 @@ export async function signup(
       .limit(1);
 
     if (existingUser.length > 0) {
+      console.log("[signup] Email already registered:", email);
       return { error: "Email already registered" };
     }
 
+    console.log("[signup] Email is available, proceeding with user creation");
     const userId = crypto.randomUUID();
-    const passwordHash = hashPassword(password);
-    const now = Date.now();
+    console.log("[signup] Generated userId:", userId);
 
+    const passwordHash = hashPassword(password);
+    console.log("[signup] Password hashed, length:", passwordHash.length);
+
+    const now = Date.now();
+    console.log("[signup] Current timestamp:", now);
+
+    console.log("[signup] Inserting team member into database");
     await db.insert(teamMembers).values({
       id: userId,
       email,
@@ -56,10 +66,13 @@ export async function signup(
       createdAt: now,
       updatedAt: now,
     });
+    console.log("[signup] Team member inserted successfully");
 
     const sessionToken = generateSessionToken();
     const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30 days
+    console.log("[signup] Generated session token, expires at:", expiresAt);
 
+    console.log("[signup] Inserting session into database");
     await db.insert(sessions).values({
       id: crypto.randomUUID(),
       userId,
@@ -67,7 +80,9 @@ export async function signup(
       expiresAt,
       createdAt: Math.floor(Date.now() / 1000),
     });
+    console.log("[signup] Session inserted successfully");
 
+    console.log("[signup] Signup completed successfully for:", email);
     return {
       user: {
         id: userId,
@@ -81,7 +96,12 @@ export async function signup(
       sessionToken,
     };
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error("[signup] ERROR:", error);
+    console.error("[signup] Error type:", error instanceof Error ? error.constructor.name : typeof error);
+    console.error("[signup] Error message:", error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.error("[signup] Stack trace:", error.stack);
+    }
     const message = error instanceof Error ? error.message : "Failed to create account";
     return { error: message };
   }
