@@ -76,14 +76,29 @@ export async function shareDealWithUser(dealId: string, userId: string, accessLe
 
 export async function getDealAccess(dealId: string): Promise<DealAccess[]> {
   const access = await db.select().from(dealAccess).where(eq(dealAccess.dealId, dealId));
-  return access.map(a => ({
-    id: a.id,
-    dealId: a.dealId,
-    userId: a.userId,
-    accessLevel: a.accessLevel as any,
-    sharedAt: new Date(a.sharedAt).toISOString(),
-    sharedBy: a.sharedBy,
-  }));
+  const allMembers = await db.select().from(teamMembers);
+  const memberMap = new Map(allMembers.map(m => [m.id, m]));
+
+  return access.map(a => {
+    const member = memberMap.get(a.userId);
+    return {
+      id: a.id,
+      dealId: a.dealId,
+      userId: a.userId,
+      accessLevel: a.accessLevel as any,
+      sharedAt: new Date(a.sharedAt).toISOString(),
+      sharedBy: a.sharedBy,
+      user: member ? {
+        id: member.id,
+        email: member.email,
+        name: member.name,
+        role: member.role as any,
+        status: member.status as any,
+        createdAt: new Date(member.createdAt).toISOString(),
+        updatedAt: new Date(member.updatedAt).toISOString(),
+      } : undefined,
+    };
+  });
 }
 
 export async function getUserAccessToDeal(dealId: string, userId: string): Promise<DealAccess | null> {
@@ -131,15 +146,30 @@ export async function assignResponsibility(
 
 export async function getDealResponsibilities(dealId: string): Promise<Responsibility[]> {
   const resp = await db.select().from(responsibilities).where(eq(responsibilities.dealId, dealId));
-  return resp.map(r => ({
-    id: r.id,
-    dealId: r.dealId,
-    userId: r.userId,
-    role: r.role as any,
-    assignedAt: new Date(r.assignedAt).toISOString(),
-    assignedBy: r.assignedBy,
-    status: r.status as any,
-  }));
+  const allMembers = await db.select().from(teamMembers);
+  const memberMap = new Map(allMembers.map(m => [m.id, m]));
+
+  return resp.map(r => {
+    const member = memberMap.get(r.userId);
+    return {
+      id: r.id,
+      dealId: r.dealId,
+      userId: r.userId,
+      role: r.role as any,
+      assignedAt: new Date(r.assignedAt).toISOString(),
+      assignedBy: r.assignedBy,
+      status: r.status as any,
+      user: member ? {
+        id: member.id,
+        email: member.email,
+        name: member.name,
+        role: member.role as any,
+        status: member.status as any,
+        createdAt: new Date(member.createdAt).toISOString(),
+        updatedAt: new Date(member.updatedAt).toISOString(),
+      } : undefined,
+    };
+  });
 }
 
 export async function getUserResponsibilities(userId: string): Promise<Responsibility[]> {

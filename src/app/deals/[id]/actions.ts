@@ -1,7 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { mutateDeal } from "@/lib/deal-mutation";
 import { recalculateActiveQuestions } from "@/lib/answer-graph";
+import { shareDealWithUser, assignResponsibility } from "@/lib/team-repo";
+import { getCurrentUser } from "@/lib/identity";
 import type {
   ClientType,
   CommercialModelType,
@@ -75,4 +78,16 @@ export async function updateDealCore(dealId: string, expectedRevision: number, f
     },
     `/deals/${dealId}`
   );
+}
+
+export async function shareDealAction(dealId: string, userId: string, accessLevel: string) {
+  const user = await getCurrentUser();
+  await shareDealWithUser(dealId, userId, accessLevel, user.id);
+  revalidatePath(`/deals/${dealId}`);
+}
+
+export async function assignRoleAction(dealId: string, userId: string, role: string) {
+  const user = await getCurrentUser();
+  await assignResponsibility(dealId, userId, role as any, user.id);
+  revalidatePath(`/deals/${dealId}`);
 }

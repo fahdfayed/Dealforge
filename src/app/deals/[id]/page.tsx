@@ -7,8 +7,13 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { DealTwinPdfButton } from "@/components/pdf-buttons";
-import { updateDealCore } from "./actions";
+import { DealTeamPanel } from "@/components/deal-team-panel";
+import { SODViolationsPanel } from "@/components/sod-violations-panel";
+import { updateDealCore, shareDealAction, assignRoleAction } from "./actions";
 import { duplicateDealAction, deleteDealAction } from "../actions";
+import { getDealAccess, getDealResponsibilities, getDealSODViolations, getTeamMembers } from "@/lib/team-repo";
+import { shareDealWithUser, assignResponsibility } from "@/lib/team-repo";
+import { getCurrentUser } from "@/lib/identity";
 
 const FACTOR_FIELDS: { name: string; label: string }[] = [
   { name: "relationshipFactor", label: "Relationship" },
@@ -40,6 +45,17 @@ export default async function DealTwinPage({
   const safety = getSafetyMode(deal.twin, probability, dims);
   const actions = getRecommendedActions(deal.twin);
   const save = updateDealCore.bind(null, deal.id, deal.revision);
+
+  const [dealAccesses, responsibilities, sodViolations, teamMembers, user] = await Promise.all([
+    getDealAccess(id),
+    getDealResponsibilities(id),
+    getDealSODViolations(id),
+    getTeamMembers(),
+    getCurrentUser(),
+  ]);
+
+  const currentUserMember = teamMembers.find(m => m.id === user.id);
+  const canManage = !!(currentUserMember && (currentUserMember.role === "admin" || currentUserMember.role === "editor"));
 
   return (
     <div className="space-y-6">
@@ -115,9 +131,21 @@ export default async function DealTwinPage({
               </form>
             </CardBody>
           </Card>
+
+          <DealTeamPanel
+            dealId={id}
+            accesses={dealAccesses}
+            responsibilities={responsibilities}
+            teamMembers={teamMembers}
+            onShareDeal={shareDealAction.bind(null, id)}
+            onAssignRole={assignRoleAction.bind(null, id)}
+            canManage={canManage}
+          />
         </div>
 
         <div className="space-y-6">
+          <SODViolationsPanel violations={sodViolations} dealId={id} />
+
           <Card>
             <CardHeader title="Safety mode" />
             <CardBody>
