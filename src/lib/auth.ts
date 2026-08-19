@@ -81,7 +81,9 @@ export async function signup(
       sessionToken,
     };
   } catch (error) {
-    return { error: "Failed to create account" };
+    console.error("Signup error:", error);
+    const message = error instanceof Error ? error.message : "Failed to create account";
+    return { error: message };
   }
 }
 
@@ -134,6 +136,7 @@ export async function login(
       sessionToken,
     };
   } catch (error) {
+    console.error("Login error:", error);
     return { error: "Login failed" };
   }
 }
