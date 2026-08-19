@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
-import { ACTION_STATUSES } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";

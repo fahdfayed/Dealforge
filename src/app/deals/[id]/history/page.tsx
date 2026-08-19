@@ -74,6 +74,10 @@ export default async function DealHistoryPage({
 
   events.push({ type: "last-updated", label: "Last updated", time: new Date(deal.updatedAt) });
 
+  // Server component render: safe to compute current time at render
+  // eslint-disable-next-line react-hooks/purity
+  const dealAgeDays = Math.round((Date.now() - new Date(deal.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+
   const eventsByType: Record<string, string> = {
     created: "✓ Created",
     "stage-changed": "→ Stage changed",
@@ -108,7 +112,7 @@ export default async function DealHistoryPage({
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Age</p>
-                  <p className="mt-1 font-medium text-slate-700">{Math.round((Date.now() - new Date(deal.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days</p>
+                  <p className="mt-1 font-medium text-slate-700">{dealAgeDays} days</p>
                 </div>
               </div>
             </div>

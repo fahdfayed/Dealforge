@@ -8,6 +8,7 @@ import { ApprovalWorkflow } from "@/components/approval-workflow";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { EmptyState } from "@/components/empty-state";
 import { ActionButton } from "@/components/button-group";
+import type { ScenarioStatus } from "@/types/deal-twin";
 import { saveScenarioAction, setBaselineAction, deleteScenarioAction, submitScenarioApprovalAction } from "./actions";
 
 export default async function DetailedEstimatePage({
@@ -64,7 +65,7 @@ export default async function DetailedEstimatePage({
                 <CardBody className="space-y-3">
                   <ApprovalWorkflow
                     approvals={s.approvals}
-                    status={s.status as any}
+                    status={s.status as ScenarioStatus}
                     onSubmit={async (decision, comment, approver) => {
                       await submitScenarioApprovalAction(id, deal.revision, s.id, decision, comment, approver);
                     }}

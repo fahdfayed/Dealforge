@@ -1,5 +1,5 @@
 // Pre-built templates for common deal scenarios
-import { createEmptyDealTwin, type DealTwin, ENGAGEMENT_TYPES, type EngagementType } from "@/types/deal-twin";
+import { createEmptyDealTwin, type DealTwin, type EngagementType } from "@/types/deal-twin";
 
 export type DealTemplate = {
   id: string;

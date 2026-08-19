@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-export default {
+const config = {
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   driver: "better-sqlite",
@@ -8,3 +8,5 @@ export default {
     url: process.env.DATABASE_PATH ?? "./data/dealforge.db",
   },
 };
+
+export default config;

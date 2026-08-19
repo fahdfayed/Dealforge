@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { ActionButton } from "@/components/button-group";

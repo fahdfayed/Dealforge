@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LayoutDashboard, Briefcase, Library, BarChart3, Menu } from "lucide-react";
+import { LayoutDashboard, Briefcase, Library, BarChart3, Menu } from "lucide-react";
 import { useState } from "react";
 
 const APPS = [
