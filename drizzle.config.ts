@@ -3,7 +3,7 @@ import "dotenv/config";
 const config = {
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  driver: "better-sqlite",
+  dialect: "sqlite",
   dbCredentials: {
     url: process.env.DATABASE_PATH ?? "./data/dealforge.db",
   },

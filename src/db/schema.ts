@@ -48,3 +48,55 @@ export const proofAssets = sqliteTable("proof_assets", {
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
+
+// Team members and workspace users.
+export const teamMembers = sqliteTable("team_members", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull(),
+  role: text("role").notNull().default("viewer"), // admin, editor, reviewer, viewer, finance, delivery
+  status: text("status").notNull().default("active"), // active, inactive, pending
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// Deal-level access control and sharing.
+export const dealAccess = sqliteTable("deal_access", {
+  id: text("id").primaryKey(),
+  dealId: text("deal_id").notNull(),
+  userId: text("user_id").notNull(),
+  accessLevel: text("access_level").notNull().default("view"), // owner, edit, review, view
+  sharedAt: integer("shared_at").notNull(),
+  sharedBy: text("shared_by").notNull(),
+});
+
+// Assigned responsibilities and roles on deals.
+export const responsibilities = sqliteTable("responsibilities", {
+  id: text("id").primaryKey(),
+  dealId: text("deal_id").notNull(),
+  userId: text("user_id").notNull(),
+  role: text("role").notNull(), // opportunity_owner, delivery_owner, finance_approver, compliance_reviewer
+  assignedAt: integer("assigned_at").notNull(),
+  assignedBy: text("assigned_by").notNull(),
+  status: text("status").notNull().default("active"), // active, completed, transferred
+});
+
+// Segregation of Duties (SOD) rules and violations.
+export const sodRules = sqliteTable("sod_rules", {
+  id: text("id").primaryKey(),
+  rule: text("rule").notNull().unique(), // e.g., "owner_cannot_be_approver", "single_reviewer_max_value"
+  description: text("description").notNull(),
+  enabled: integer("enabled").notNull().default(1),
+  createdAt: integer("created_at").notNull(),
+});
+
+// SOD rule violations (audit trail).
+export const sodViolations = sqliteTable("sod_violations", {
+  id: text("id").primaryKey(),
+  dealId: text("deal_id").notNull(),
+  ruleId: text("rule_id").notNull(),
+  severity: text("severity").notNull(), // error, warning
+  details: text("details").notNull(),
+  resolvedAt: integer("resolved_at"),
+  detectedAt: integer("detected_at").notNull(),
+});

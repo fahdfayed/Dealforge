@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, Library, BarChart3, Menu } from "lucide-react";
+import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users } from "lucide-react";
 import { useState } from "react";
 
 const APPS = [
@@ -10,6 +10,7 @@ const APPS = [
   { id: "deals", label: "Deals", href: "/deals", icon: Briefcase },
   { id: "portfolio", label: "Portfolio", href: "/portfolio", icon: BarChart3 },
   { id: "vault", label: "Proof Vault", href: "/proof", icon: Library },
+  { id: "team", label: "Team", href: "/team", icon: Users },
 ];
 
 export function SidebarNav() {
