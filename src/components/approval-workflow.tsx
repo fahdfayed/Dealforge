@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input, Textarea, Select } from "@/components/form-input";
 
 interface ApprovalWorkflowProps {
-  approvals: ApprovalRecord[];
+  approvals?: ApprovalRecord[] | null;
   status: "Draft" | "Pending approval" | "Approved" | "Rejected" | "Sent";
   onSubmit?: (decision: "approved" | "rejected", comment: string, approver: string) => Promise<void>;
   loading?: boolean;
 }
 
 export function ApprovalWorkflow({ approvals, status, onSubmit, loading }: ApprovalWorkflowProps) {
+  const approvalsList = approvals ?? [];
   const [showForm, setShowForm] = useState(false);
   const [comment, setComment] = useState("");
   const [approver, setApprover] = useState("");
@@ -78,9 +79,9 @@ export function ApprovalWorkflow({ approvals, status, onSubmit, loading }: Appro
         </div>
       )}
 
-      {approvals.length > 0 && (
+      {approvalsList.length > 0 && (
         <div className="space-y-2 border-t border-slate-200 pt-3">
-          {approvals.map((approval) => (
+          {approvalsList.map((approval) => (
             <div key={approval.id} className="rounded-md bg-white p-2.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-medium text-slate-900">{approval.approvedBy}</span>

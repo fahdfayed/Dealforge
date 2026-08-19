@@ -4,7 +4,7 @@ import { ApprovalWorkflow } from "@/components/approval-workflow";
 import type { ScenarioStatus, ProposalStatus } from "@/types/deal-twin";
 
 interface ApprovalWorkflowWrapperProps {
-  approvals: any[];
+  approvals?: any[] | null;
   status: ScenarioStatus | ProposalStatus;
   dealId: string;
   entityId: string;
