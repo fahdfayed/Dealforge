@@ -15,6 +15,13 @@
       "when": 1787141240578,
       "tag": "0001_lying_stephen_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787141931791,
+      "tag": "0002_unique_mattie_franklin",
+      "breakpoints": true
     }
   ]
 }

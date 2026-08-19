@@ -56,8 +56,18 @@ export const teamMembers = sqliteTable("team_members", {
   name: text("name").notNull(),
   role: text("role").notNull().default("viewer"), // admin, editor, reviewer, viewer, finance, delivery
   status: text("status").notNull().default("active"), // active, inactive, pending
+  passwordHash: text("password_hash"),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
+});
+
+// User sessions for authentication
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at").notNull(),
+  createdAt: integer("created_at").notNull(),
 });
 
 // Deal-level access control and sharing.

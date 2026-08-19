@@ -1,23 +1,31 @@
-// Identity: the documented production model authenticates via headers set
-// by the ChatGPT App host ("ChatGPT-authenticated user headers and safe
-// sign-in/sign-out return paths", doc section 15.1). This container has no
-// ChatGPT App platform session to read, so this module trusts the header
-// when present and falls back to a fixed local-dev user otherwise. Wiring
-// this to a real ChatGPT App deployment is a platform-configuration task,
-// not something that can be faked here.
-import { headers } from "next/headers";
+// Identity: authentication via session tokens stored in cookies
+import { headers, cookies } from "next/headers";
+import { verifySession } from "./auth";
 
-export type CurrentUser = { id: string; name: string; source: "chatgpt-header" | "dev-fallback" };
+export type CurrentUser = { id: string; name: string; source: "session" | "chatgpt-header" | "dev-fallback" };
 
 const DEV_USER: CurrentUser = { id: "dev-user", name: "Dev Workspace Owner", source: "dev-fallback" };
 
 export async function getCurrentUser(): Promise<CurrentUser> {
+  // First check for session token in cookies
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("auth_token")?.value;
+
+  if (authToken) {
+    const user = await verifySession(authToken);
+    if (user) {
+      return { id: user.id, name: user.name, source: "session" };
+    }
+  }
+
+  // Fall back to ChatGPT headers
   const h = await headers();
   const id = h.get("x-chatgpt-user-id");
   const name = h.get("x-chatgpt-user-name");
   if (id) {
     return { id, name: name ?? id, source: "chatgpt-header" };
   }
+
   return DEV_USER;
 }
 
