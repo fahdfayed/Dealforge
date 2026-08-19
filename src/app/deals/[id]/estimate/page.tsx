@@ -4,7 +4,7 @@ import { DEFAULT_COMMERCIAL_INPUTS } from "@/lib/commercial";
 import { CommercialEstimator } from "@/components/commercial-estimator";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ApprovalWorkflow } from "@/components/approval-workflow";
+import { ApprovalWorkflowWrapper } from "@/components/approval-workflow-wrapper";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { EmptyState } from "@/components/empty-state";
 import { ActionButton } from "@/components/button-group";
@@ -63,12 +63,13 @@ export default async function DetailedEstimatePage({
                   }
                 />
                 <CardBody className="space-y-3">
-                  <ApprovalWorkflow
+                  <ApprovalWorkflowWrapper
                     approvals={s.approvals}
                     status={s.status as ScenarioStatus}
-                    onSubmit={async (decision, comment, approver) => {
-                      await submitScenarioApprovalAction(id, deal.revision, s.id, decision, comment, approver);
-                    }}
+                    dealId={id}
+                    entityId={s.id}
+                    revision={deal.revision}
+                    onSubmitAction={submitScenarioApprovalAction}
                   />
                   {s.approvalExceptions.length > 0 && (
                     <div className="rounded-md border border-amber-200 bg-amber-50 p-3">

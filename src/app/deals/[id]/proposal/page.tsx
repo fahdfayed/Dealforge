@@ -8,7 +8,7 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConflictBanner } from "@/components/conflict-banner";
 import { ProposalPdfButtons } from "@/components/pdf-buttons";
-import { ApprovalWorkflow } from "@/components/approval-workflow";
+import { ApprovalWorkflowWrapper } from "@/components/approval-workflow-wrapper";
 import { EmptyState } from "@/components/empty-state";
 import { ActionButton } from "@/components/button-group";
 import { Select } from "@/components/form-input";
@@ -73,12 +73,13 @@ export default async function ProposalPage({
                 />
                 <CardBody className="space-y-3">
                   <ProposalPdfButtons deal={deal} proposal={p} proof={matchedProof} />
-                  <ApprovalWorkflow
+                  <ApprovalWorkflowWrapper
                     approvals={p.approvals}
                     status={p.status}
-                    onSubmit={async (decision, comment, approver) => {
-                      await submitProposalApprovalAction(id, rev, p.id, decision, comment, approver);
-                    }}
+                    dealId={id}
+                    entityId={p.id}
+                    revision={rev}
+                    onSubmitAction={submitProposalApprovalAction}
                   />
                   <div className="flex flex-wrap gap-1.5">
                     {PROPOSAL_STATUSES.map((s) => (
