@@ -112,26 +112,35 @@ export async function login(
   password: string
 ): Promise<{ user: TeamMember; sessionToken: string } | { error: string }> {
   try {
+    console.log("[login] Starting login for email:", email);
+
     const users = await db
       .select()
       .from(teamMembers)
       .where(eq(teamMembers.email, email))
       .limit(1);
 
+    console.log("[login] Database query completed, found users:", users.length);
+
     if (users.length === 0) {
+      console.log("[login] User not found");
       return { error: "Invalid email or password" };
     }
 
     const user = users[0];
+    console.log("[login] User found, checking password hash");
 
     if (!user.passwordHash) {
+      console.log("[login] No password hash on user");
       return { error: "Invalid email or password" };
     }
 
     if (!verifyPassword(password, user.passwordHash)) {
+      console.log("[login] Password verification failed");
       return { error: "Invalid email or password" };
     }
 
+    console.log("[login] Password verified, creating session");
     const sessionToken = generateSessionToken();
     const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
 
@@ -142,6 +151,7 @@ export async function login(
       expiresAt,
       createdAt: Math.floor(Date.now() / 1000),
     });
+    console.log("[login] Session created successfully");
 
     return {
       user: {
@@ -156,7 +166,12 @@ export async function login(
       sessionToken,
     };
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[login] ERROR:", error);
+    console.error("[login] Error type:", error instanceof Error ? error.constructor.name : typeof error);
+    console.error("[login] Error message:", error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.error("[login] Stack trace:", error.stack);
+    }
     return { error: "Login failed" };
   }
 }
