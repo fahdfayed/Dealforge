@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users, LogOut } from "lucide-react";
 import { useState } from "react";
@@ -43,7 +44,7 @@ export function SidebarNav() {
     <>
       {/* Odoo-style top bar */}
       <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b" style={{ borderBottomColor: 'var(--border-color)' }}>
-        <div className="flex items-center h-full px-4 gap-4">
+        <div className="flex items-center h-full px-4 gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1 hover:bg-gray-100 rounded"
@@ -51,7 +52,16 @@ export function SidebarNav() {
           >
             <Menu size={20} />
           </button>
-          <div className="text-sm font-medium text-gray-700">DealForge</div>
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image
+              src="/images/intelloger-logo.svg"
+              alt="Intelloger"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
+            {sidebarOpen && <span className="text-sm font-semibold text-gray-900">DealForge</span>}
+          </Link>
         </div>
       </div>
 

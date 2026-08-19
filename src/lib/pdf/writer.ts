@@ -6,8 +6,8 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb, PageSizes } from "pdf-lib";
 
 const BRAND = {
-  primary: rgb(0.44, 0.3, 0.4), // Odoo purple (#714b67)
-  accent: rgb(0, 0.52, 0.78), // Odoo blue (#0084c6)
+  primary: rgb(0, 0.125, 0.25), // Intelloger dark blue (#001f40)
+  accent: rgb(1, 0.55, 0), // Intelloger orange (#ff8c00)
   ink: rgb(0.17, 0.17, 0.17),
   muted: rgb(0.35, 0.35, 0.35),
   line: rgb(0.93, 0.93, 0.93),
@@ -67,12 +67,19 @@ export class PdfWriter {
 
   private drawBrandBar(): void {
     this.page.drawRectangle({ x: 0, y: this.pageSize[1] - 6, width: this.width, height: 6, color: BRAND.primary });
-    this.page.drawText("DealForge", {
+    this.page.drawText("Intelloger", {
       x: MARGIN,
       y: this.pageSize[1] - 24,
       size: 10,
       font: this.bold,
       color: BRAND.primary,
+    });
+    this.page.drawText("DealForge", {
+      x: MARGIN + 80,
+      y: this.pageSize[1] - 24,
+      size: 10,
+      font: this.font,
+      color: BRAND.muted,
     });
     this.y = this.pageSize[1] - 50;
   }
