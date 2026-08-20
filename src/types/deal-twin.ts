@@ -336,6 +336,10 @@ export type DealTwin = {
   commercialHeadline: CommercialHeadline;
   dealDNA: DealDNA;
   answers: StructuredAnswer[];
+  // Answers whose question left the active set after a Deal DNA change. Held
+  // aside rather than deleted: doc 4.1 requires that they stop counting, not
+  // that the work is lost. Restored to `answers` if the question returns.
+  archivedAnswers: StructuredAnswer[];
   activeQuestionIds: string[];
   evidence: EvidenceItem[];
   solution: SolutionBlueprint;
@@ -400,6 +404,7 @@ export function createEmptyDealTwin(seed: { company: string; owner: string }): D
       urgencyFactor: null,
     },
     answers: [],
+    archivedAnswers: [],
     activeQuestionIds: [],
     evidence: [],
     solution: {

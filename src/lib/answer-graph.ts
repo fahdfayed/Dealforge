@@ -1,17 +1,40 @@
 import type { Authority, DealTwin, StructuredAnswer } from "@/types/deal-twin";
 import { getActiveQuestions, getQuestionById } from "@/lib/questions";
 
-// Recalculates the active question set from the current Deal DNA and drops
-// any stored answers that no longer fit — "answers that no longer fit the
-// new context are invalidated rather than quietly retained" (doc 4.1).
+// Recalculates the active question set from the current Deal DNA. Answers whose
+// question is no longer active stop counting — "answers that no longer fit the
+// new context are invalidated rather than quietly retained" (doc 4.1) — but they
+// are moved to `archivedAnswers` rather than deleted, and restored if the
+// question becomes active again.
+//
+// This matters because Deal DNA is edited routinely: changing industry to look
+// at something and changing it back used to discard the captured authority,
+// source and confidence with no warning and no way to recover them. Nothing
+// downstream reads `archivedAnswers`, so scoring and coverage are unaffected.
 export function recalculateActiveQuestions(twin: DealTwin): DealTwin {
   const active = getActiveQuestions(twin.dealDNA);
   const activeIds = new Set(active.map((q) => q.id));
 
+  // Merge held and archived answers into one set keyed by question, so a
+  // question can never end up with two answers (which would double-count in
+  // the coverage denominator). A live answer beats an archived copy.
+  // Existing deals predate the field, so treat a missing archive as empty.
+  const byQuestion = new Map<string, StructuredAnswer>();
+  for (const a of twin.archivedAnswers ?? []) byQuestion.set(a.questionId, a);
+  for (const a of twin.answers) byQuestion.set(a.questionId, a);
+
+  const answers: StructuredAnswer[] = [];
+  const archivedAnswers: StructuredAnswer[] = [];
+  for (const answer of byQuestion.values()) {
+    if (activeIds.has(answer.questionId)) answers.push(answer);
+    else archivedAnswers.push(answer);
+  }
+
   return {
     ...twin,
     activeQuestionIds: active.map((q) => q.id),
-    answers: twin.answers.filter((a) => activeIds.has(a.questionId)),
+    answers,
+    archivedAnswers,
   };
 }
 

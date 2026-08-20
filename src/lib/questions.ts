@@ -115,6 +115,15 @@ export const COMMERCIAL_MODEL_PACK: Question[] = [
   { id: "ctx-cm-2", module: "Commercial model", text: "Renewal / exit terms discussed?", inputType: "single", options: ["Yes", "No", "Not yet"], critical: false },
 ];
 
+// Collapses layered packs to one question per id, first occurrence winning.
+// Without this a question contributed by two packs would be counted twice in
+// the coverage denominator (scoring.ts), permanently capping coverage below
+// 100%, and would render twice with duplicate React keys.
+function dedupeById(questions: Question[]): Question[] {
+  const seen = new Set<string>();
+  return questions.filter((q) => (seen.has(q.id) ? false : (seen.add(q.id), true)));
+}
+
 export function getActiveQuestions(dna: DealDNA): Question[] {
   const active: Question[] = [...STANDARD_QUESTIONS];
 
@@ -131,19 +140,27 @@ export function getActiveQuestions(dna: DealDNA): Question[] {
     active.push(...COMMERCIAL_MODEL_PACK);
   }
 
-  return active;
+  return dedupeById(active);
 }
 
-const ALL_QUESTIONS: Question[] = [
-  ...STANDARD_QUESTIONS,
-  ...Object.values(ENGAGEMENT_PACKS).flat(),
-  ...MULTI_COUNTRY_PACK,
-  ...REGULATED_INDUSTRY_PACK,
-  ...COMMERCIAL_MODEL_PACK,
+// Every question this module can produce, indexed for lookup. Derived from the
+// same pack constants getActiveQuestions layers, so a pack cannot be added to
+// one and forgotten in the other — that omission used to surface as a thrown
+// "Unknown question id" on answer submission (answer-graph.ts).
+const QUESTION_SOURCES: Question[][] = [
+  STANDARD_QUESTIONS,
+  ...Object.values(ENGAGEMENT_PACKS),
+  MULTI_COUNTRY_PACK,
+  REGULATED_INDUSTRY_PACK,
+  COMMERCIAL_MODEL_PACK,
 ];
 
+const QUESTION_INDEX: Map<string, Question> = new Map(
+  QUESTION_SOURCES.flat().map((q) => [q.id, q])
+);
+
 export function getQuestionById(id: string): Question | undefined {
-  return ALL_QUESTIONS.find((q) => q.id === id);
+  return QUESTION_INDEX.get(id);
 }
 
 export const STANDARD_QUESTION_COUNT = STANDARD_QUESTIONS.length; // 19
