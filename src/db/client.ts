@@ -13,9 +13,9 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
-import { mkdirSync, readFileSync, readdirSync } from "fs";
-import { dirname, join } from "path";
-import { createHash } from "crypto";
+import { mkdirSync } from "fs";
+import { dirname } from "path";
+import { runMigrations } from "./migrations";
 
 const globalForDb = globalThis as unknown as { sqlite: Database.Database | undefined };
 
@@ -24,62 +24,13 @@ mkdirSync(dirname(dbPath), { recursive: true });
 const sqlite = globalForDb.sqlite ?? new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
 
-// Run migrations automatically
-function runMigrations(db: Database.Database) {
-  try {
-    // Ensure migrations table exists
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS __drizzle_migrations (
-        id INTEGER PRIMARY KEY,
-        hash TEXT NOT NULL UNIQUE,
-        created_at INTEGER NOT NULL
-      )
-    `);
-
-    // Get list of migration files
-    const migrationsDir = join(process.cwd(), "drizzle");
-    const migrationFiles = readdirSync(migrationsDir)
-      .filter(f => f.endsWith(".sql"))
-      .sort();
-
-    console.log("[migrations] Found migration files:", migrationFiles);
-
-    // Run each migration
-    for (const file of migrationFiles) {
-      const filePath = join(migrationsDir, file);
-      const content = readFileSync(filePath, "utf-8");
-      const hash = createHash("sha256").update(content).digest("hex");
-
-      const existing = db
-        .prepare("SELECT id FROM __drizzle_migrations WHERE hash = ?")
-        .get(hash);
-
-      if (!existing) {
-        console.log("[migrations] Running migration:", file);
-        db.exec(content);
-        db.prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)").run(
-          hash,
-          Math.floor(Date.now() / 1000)
-        );
-        console.log("[migrations] ✓ Completed:", file);
-      } else {
-        console.log("[migrations] ✓ Already run:", file);
-      }
-    }
-  } catch (error) {
-    console.error("[migrations] Error running migrations:", error);
-    throw error;
-  }
-}
-
-// Run migrations immediately on module load
+// Applied on module load so a dev server always starts against a current
+// schema. Failures are logged rather than thrown: the app should still boot so
+// the error is visible in the UI rather than as a blank page.
 try {
   runMigrations(sqlite);
-  console.log("[migrations] All migrations completed successfully");
 } catch (err) {
-  console.error("[migrations] Failed to run migrations:", err);
-  // Don't throw - allow app to start even if migrations fail,
-  // the error logs will help debug
+  console.error("[migrations] failed:", err);
 }
 
 if (process.env.NODE_ENV !== "production") {

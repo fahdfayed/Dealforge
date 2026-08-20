@@ -10,9 +10,53 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 export const dealStates = sqliteTable("deal_states", {
   id: text("id").primaryKey(),
   company: text("company").notNull(),
+  // Nullable while existing deals are migrated onto accounts, and because a
+  // deal can be created before its client is known.
+  accountId: text("account_id"),
+  // Denormalized from the account (or overridden per deal). Kept as a column
+  // rather than read from `payload` so deals can be filtered and rolled up by
+  // industry in SQL — the payload is an opaque blob to the database.
+  industryId: text("industry_id"),
   payload: text("payload").notNull(),
   revision: integer("revision").notNull().default(1),
   createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// A client organisation. Deals hang off an account so client-level facts —
+// above all which industry they are in — are recorded once and inherited by
+// every pursuit, instead of being retyped as free text on each deal.
+export const accounts = sqliteTable("accounts", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  industryId: text("industry_id"),
+  countries: text("countries").notNull().default("[]"),
+  clientType: text("client_type"),
+  notes: text("notes").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// The client's sector. Authored rather than hardcoded: the engagement types we
+// sell are fixed (we are an Oracle partner), but the industries we sell into
+// are open-ended, so this is data.
+export const industries = sqliteTable("industries", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  active: integer("active").notNull().default(1),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// What being in an industry changes about a deal: extra discovery questions,
+// extra solution components, scoring weight overrides, forced gates, proof
+// match tags, and which parts of the app are relevant. Stored as one JSON
+// payload per industry for the same reason deal_states.payload is JSON — the
+// shape is authored content, not something to query field-by-field.
+export const industryPacks = sqliteTable("industry_packs", {
+  industryId: text("industry_id").primaryKey(),
+  payload: text("payload").notNull().default("{}"),
+  revision: integer("revision").notNull().default(1),
   updatedAt: integer("updated_at").notNull(),
 });
 
