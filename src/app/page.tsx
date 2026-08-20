@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { listDeals } from "@/lib/deal-repo";
 import { decisionQueue, answerGraphHealth } from "@/lib/today";
 import { PageHeader } from "@/components/page-header";
@@ -11,6 +13,13 @@ export const dynamic = "force-dynamic";
 const SEVERITY_COLOR: Record<string, string> = { critical: "rose", high: "amber", medium: "sky" };
 
 export default async function TodayPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) {
+    redirect("/auth/login");
+  }
+
   const deals = await listDeals();
   const queue = decisionQueue(deals, 8);
   const health = answerGraphHealth(deals);

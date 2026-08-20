@@ -30,12 +30,15 @@ export default function LoginPage() {
       const result = await loginAction(email, password);
       if (result.error) {
         setError(result.error);
+        setLoading(false);
       } else {
-        router.push("/");
+        // Small delay to ensure cookie is set before redirect
+        setTimeout(() => {
+          router.push("/");
+        }, 100);
       }
     } catch (err) {
       setError("An error occurred");
-    } finally {
       setLoading(false);
     }
   }
