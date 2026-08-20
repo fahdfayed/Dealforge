@@ -67,7 +67,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h1>
-          <p className="text-slate-500 mb-8">Log in to your DealForge account</p>
+          <p className="text-slate-500 mb-8">Log in to your Intelloger account</p>
 
           {error && (
             <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">

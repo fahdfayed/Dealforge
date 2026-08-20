@@ -78,7 +78,7 @@ export default function SignupPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Sign up</h1>
-          <p className="text-slate-500 mb-8">Create your DealForge account</p>
+          <p className="text-slate-500 mb-8">Create your Intelloger account</p>
 
           {error && (
             <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">

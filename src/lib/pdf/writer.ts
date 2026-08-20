@@ -41,8 +41,8 @@ export class PdfWriter {
   static async create(title: string, orientation: Orientation = "portrait"): Promise<PdfWriter> {
     const doc = await PDFDocument.create();
     doc.setTitle(title);
-    doc.setProducer("Intelloger DealForge");
-    doc.setCreator("Intelloger DealForge");
+    doc.setProducer("Intelloger");
+    doc.setCreator("Intelloger");
     const writer = new PdfWriter(doc, title, orientation);
     writer.font = await doc.embedFont(StandardFonts.Helvetica);
     writer.bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -73,13 +73,6 @@ export class PdfWriter {
       size: 10,
       font: this.bold,
       color: BRAND.primary,
-    });
-    this.page.drawText("DealForge", {
-      x: MARGIN + 80,
-      y: this.pageSize[1] - 24,
-      size: 10,
-      font: this.font,
-      color: BRAND.muted,
     });
     this.y = this.pageSize[1] - 50;
   }

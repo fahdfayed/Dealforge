@@ -19,7 +19,7 @@ export default async function SourcesPage({ params }: { params: Promise<{ id: st
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-          Files, transcripts and correspondence are stored as governed source records. DealForge does not currently
+          Files, transcripts and correspondence are stored as governed source records. Intelloger does not currently
           analyse them — no automatic findings are produced until a model gateway, retrieval policy and human
           approval gate are connected.
         </div>

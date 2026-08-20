@@ -1,11 +1,11 @@
-# Intelloger DealForge
+# Intelloger
 
-DealForge is Intelloger's governed opportunity operating system. It turns
+Intelloger is a governed opportunity operating system. It turns
 fragmented pursuit information into one reusable record, then uses that
 same record to shape discovery, solution options, pricing, proposals,
 negotiations and delivery handover.
 
-> DealForge is not an AI proposal generator. It is the controlled
+> Intelloger is not an AI proposal generator. It is the controlled
 > intelligence layer connecting pursuit decisions to commercially safe
 > outputs and delivery-ready commitments.
 
@@ -77,7 +77,7 @@ not a code change to the business logic.
   calendar.**
 - **No Zoho/Microsoft/Oracle workflow integrations.**
 
-DealForge must never invent: project references, consultant/delivery
+Intelloger must never invent: project references, consultant/delivery
 availability, licensing quantities or Oracle approval, commercial
 approvals or margin-floor exceptions, client-confirmed scope, or legal
 commitments.

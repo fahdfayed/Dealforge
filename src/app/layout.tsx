@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DealForge",
+  title: "Intelloger",
   description:
     "The intelligence layer between the first client conversation and successful project delivery.",
 };
