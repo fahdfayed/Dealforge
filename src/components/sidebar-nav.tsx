@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { logoutAction } from "@/app/auth/logout/actions";
 
@@ -15,6 +15,29 @@ const APPS = [
   { id: "team", label: "Team", href: "/team", icon: Users },
 ];
 
+// The main path through a deal, always visible.
+const CORE_MENU_ITEMS = [
+  { segment: "", label: "Overview" },
+  { segment: "understand", label: "Understand" },
+  { segment: "solution", label: "Solution" },
+  { segment: "estimate", label: "Estimate" },
+  { segment: "proposal", label: "Proposal" },
+  { segment: "handover", label: "Handover" },
+];
+
+// Situational pages, collapsed until needed.
+const MORE_MENU_ITEMS = [
+  { segment: "health", label: "Health" },
+  { segment: "sources", label: "Sources" },
+  { segment: "build-offer", label: "Build Offer" },
+  { segment: "negotiate", label: "Negotiate" },
+  { segment: "commitments", label: "Commitments" },
+  { segment: "submission-check", label: "Submission Check" },
+  { segment: "actions", label: "Actions" },
+  { segment: "client-share", label: "Client Share" },
+  { segment: "oracle", label: "Oracle" },
+];
+
 export function SidebarNav() {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -22,23 +45,26 @@ export function SidebarNav() {
   const activeDealId = dealMatch && dealMatch[1] !== "new" ? dealMatch[1] : null;
   const currentSegment = dealMatch && dealMatch[2] ? dealMatch[2].split("/")[0] : "";
 
-  const dealMenuItems = [
-    { segment: "", label: "Overview" },
-    { segment: "understand", label: "Understand" },
-    { segment: "health", label: "Health" },
-    { segment: "sources", label: "Sources" },
-    { segment: "build-offer", label: "Build Offer" },
-    { segment: "solution", label: "Solution" },
-    { segment: "estimate", label: "Estimate" },
-    { segment: "negotiate", label: "Negotiate" },
-    { segment: "commitments", label: "Commitments" },
-    { segment: "submission-check", label: "Submission Check" },
-    { segment: "actions", label: "Actions" },
-    { segment: "client-share", label: "Client Share" },
-    { segment: "oracle", label: "Oracle" },
-    { segment: "proposal", label: "Proposal" },
-    { segment: "handover", label: "Handover" },
-  ];
+  const [moreExpanded, setMoreExpanded] = useState(false);
+
+  // Force the group open when the current page lives in it, so the active
+  // item is never hidden behind a collapsed section.
+  const onMorePage = MORE_MENU_ITEMS.some((item) => item.segment === currentSegment);
+  const showMore = moreExpanded || onMorePage;
+
+  const dealLink = (item: { segment: string; label: string }) => (
+    <Link
+      key={item.segment}
+      href={`/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`}
+      className={`block px-2 py-1.5 text-sm rounded transition-colors ${
+        currentSegment === item.segment
+          ? "bg-blue-50 text-blue-700 font-medium"
+          : "text-gray-700 hover:bg-gray-50"
+      }`}
+    >
+      {item.label}
+    </Link>
+  );
 
   return (
     <>
@@ -60,7 +86,7 @@ export function SidebarNav() {
               height={32}
               className="h-8 w-auto"
             />
-            {sidebarOpen && <span className="text-sm font-semibold text-gray-900">DealForge</span>}
+            {sidebarOpen && <span className="text-sm font-semibold text-gray-900">Intelloger</span>}
           </Link>
         </div>
       </div>
@@ -101,21 +127,25 @@ export function SidebarNav() {
           {activeDealId && sidebarOpen && (
             <div className="p-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 px-2">Menu</div>
-              <nav className="space-y-0.5">
-                {dealMenuItems.map((item) => (
-                  <Link
-                    key={item.segment}
-                    href={`/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`}
-                    className={`block px-2 py-1.5 text-sm rounded transition-colors ${
-                      currentSegment === item.segment || (item.segment === "" && currentSegment === "")
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
+              <nav className="space-y-0.5">{CORE_MENU_ITEMS.map(dealLink)}</nav>
+
+              {/* Collapsed when you are working through the core flow; the
+                  toggle is dropped once you are on one of these pages, since
+                  the group is then pinned open. */}
+              {!onMorePage && (
+                <button
+                  onClick={() => setMoreExpanded(!moreExpanded)}
+                  aria-expanded={showMore}
+                  className="mt-1 flex w-full items-center gap-1 rounded px-2 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
+                >
+                  {showMore ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span>More</span>
+                </button>
+              )}
+
+              {showMore && (
+                <nav className="mt-0.5 space-y-0.5">{MORE_MENU_ITEMS.map(dealLink)}</nav>
+              )}
             </div>
           )}
         </div>
