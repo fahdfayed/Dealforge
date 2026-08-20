@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
+import { listIndustries } from "@/lib/industry-pack-repo";
 import { getRecommendedActions, getSafetyMode, computeProbability, computeDimensions } from "@/lib/scoring";
 import { STAGES, ENGAGEMENT_TYPES, COMMERCIAL_MODELS, CLIENT_TYPES, MOMENTUM_STATES } from "@/types/deal-twin";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
@@ -39,6 +40,10 @@ export default async function DealTwinPage({
   const { conflict } = await searchParams;
   const deal = await getDeal(id);
   if (!deal) notFound();
+
+  const industryOptions = (await listIndustries())
+    .filter((i) => i.active || i.id === deal.twin.dealDNA.industryId)
+    .map((i) => ({ value: i.id, label: i.name }));
 
   const probability = computeProbability(deal.twin);
   const dims = computeDimensions(deal.twin);
@@ -100,7 +105,12 @@ export default async function DealTwinPage({
                   <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Deal DNA</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <SelectField label="Engagement type" name="engagementType" defaultValue={deal.twin.dealDNA.engagementType ?? ""} options={["", ...ENGAGEMENT_TYPES]} />
-                    <Field label="Industry" name="industry" defaultValue={deal.twin.dealDNA.industry} />
+                    <SelectField
+                      label="Industry"
+                      name="industryId"
+                      defaultValue={deal.twin.dealDNA.industryId ?? ""}
+                      options={[{ value: "", label: "Not set" }, ...industryOptions]}
+                    />
                     <Field label="Countries (comma-separated)" name="countries" defaultValue={deal.twin.dealDNA.countries.join(", ")} full />
                     <SelectField label="Client type" name="clientType" defaultValue={deal.twin.dealDNA.clientType ?? ""} options={["", ...CLIENT_TYPES]} />
                     <SelectField label="Commercial model" name="commercialModel" defaultValue={deal.twin.dealDNA.commercialModel ?? ""} options={["", ...COMMERCIAL_MODELS]} />
@@ -247,9 +257,12 @@ function SelectField({
   label: string;
   name: string;
   defaultValue: string;
-  options: string[];
+  // Plain strings where the value is also the label, or {value,label} pairs
+  // where they differ — industries are stored by id but shown by name.
+  options: Array<string | { value: string; label: string }>;
   compact?: boolean;
 }) {
+  const normalized = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   return (
     <div>
       <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
@@ -258,9 +271,9 @@ function SelectField({
         defaultValue={defaultValue}
         className={`w-full rounded-md border border-slate-300 text-sm ${compact ? "px-2 py-1.5" : "px-3 py-2"}`}
       >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o || "Not set"}
+        {normalized.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label || "Not set"}
           </option>
         ))}
       </select>

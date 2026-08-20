@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { mutateDeal } from "@/lib/deal-mutation";
 import { recalculateActiveQuestions } from "@/lib/answer-graph";
+import { getIndustrySync } from "@/lib/industry-packs";
 import { shareDealWithUser, assignResponsibility } from "@/lib/team-repo";
 import { getCurrentUser } from "@/lib/identity";
 import type {
@@ -29,6 +30,7 @@ export async function updateDealCore(dealId: string, expectedRevision: number, f
     dealId,
     expectedRevision,
     (twin) => {
+      const industryId = String(formData.get("industryId") ?? "") || null;
       const countries = String(formData.get("countries") ?? "")
         .split(",")
         .map((s) => s.trim())
@@ -55,7 +57,10 @@ export async function updateDealCore(dealId: string, expectedRevision: number, f
         dealDNA: {
           ...twin.dealDNA,
           engagementType: (String(formData.get("engagementType") ?? "") || null) as EngagementType | null,
-          industry: String(formData.get("industry") ?? ""),
+          industryId,
+          // Denormalized display name, kept in step with the selected id so
+          // PDFs and the compare view do not need the pack cache to render.
+          industry: getIndustrySync(industryId)?.name ?? "",
           countries,
           clientType: (String(formData.get("clientType") ?? "") || null) as ClientType | null,
           commercialModel: (String(formData.get("commercialModel") ?? "") || null) as CommercialModelType | null,

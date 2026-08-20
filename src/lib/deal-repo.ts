@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { dealStates, radarIntakes } from "@/db/schema";
 import { createEmptyDealTwin, type Deal, type DealTwin } from "@/types/deal-twin";
 import { deleteObject } from "@/lib/storage";
+import { ensurePacksLoaded } from "@/lib/industry-pack-repo";
 
 export class ConflictError extends Error {
   constructor(public dealId: string, public expected: number, public actual: number) {
@@ -21,12 +22,18 @@ function rowToDeal(row: typeof dealStates.$inferSelect): Deal {
   };
 }
 
+// Loading a deal is the chokepoint every screen passes through, so it is where
+// the industry pack cache gets warmed. The engines then resolve packs
+// synchronously (see lib/industry-packs.ts), which is what lets the scoring
+// engine stay sync end to end.
 export async function listDeals(): Promise<Deal[]> {
+  await ensurePacksLoaded();
   const rows = await db.select().from(dealStates).orderBy(desc(dealStates.updatedAt));
   return rows.map(rowToDeal);
 }
 
 export async function getDeal(id: string): Promise<Deal | null> {
+  await ensurePacksLoaded();
   const rows = await db.select().from(dealStates).where(eq(dealStates.id, id)).limit(1);
   return rows[0] ? rowToDeal(rows[0]) : null;
 }

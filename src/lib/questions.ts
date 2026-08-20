@@ -4,6 +4,7 @@
 // extend it. Response controls are limited to single/multiple/number per
 // section 4.2 — "controlled input first."
 import type { DealDNA, EngagementType } from "@/types/deal-twin";
+import { getAllCachedPacks, getPackSync } from "@/lib/industry-packs";
 
 export type QuestionInputType = "single" | "multiple" | "number";
 
@@ -103,8 +104,8 @@ export const MULTI_COUNTRY_PACK: Question[] = [
   { id: "ctx-mc-3", module: "Multi-country", text: "Number of local entities / legal registrations", inputType: "number", critical: false },
 ];
 
-const REGULATED_INDUSTRIES = ["Government", "Public Sector", "Healthcare", "Financial Services", "Banking", "Insurance", "Defence"];
-
+// Superseded by authored industry packs. Retained in the lookup index only so
+// answers captured against these ids before the migration still resolve.
 export const REGULATED_INDUSTRY_PACK: Question[] = [
   { id: "ctx-reg-1", module: "Regulated industry", text: "Regulatory framework applicable", inputType: "multiple", options: ["Data residency", "Sector-specific compliance", "Government security clearance", "None identified"], critical: false },
   { id: "ctx-reg-2", module: "Regulated industry", text: "Government approval / procurement gate required?", inputType: "single", options: ["Yes", "No", "Unknown"], critical: true },
@@ -133,8 +134,14 @@ export function getActiveQuestions(dna: DealDNA): Question[] {
   if (dna.countries.length > 1) {
     active.push(...MULTI_COUNTRY_PACK);
   }
-  if (dna.industry && REGULATED_INDUSTRIES.includes(dna.industry)) {
-    active.push(...REGULATED_INDUSTRY_PACK);
+  // The industry's authored pack. Read synchronously from the pack cache; see
+  // lib/industry-packs.ts for why resolution is split async-load/sync-read.
+  // This replaced a case-sensitive `REGULATED_INDUSTRIES.includes(industry)`
+  // check against a free-text field, where "healthcare" silently matched
+  // nothing and all seven regulated industries got the same two questions.
+  const pack = getPackSync(dna.industryId);
+  if (pack) {
+    active.push(...pack.questions);
   }
   if (dna.commercialModel === "Managed service" || dna.commercialModel === "Subscription") {
     active.push(...COMMERCIAL_MODEL_PACK);
@@ -160,7 +167,16 @@ const QUESTION_INDEX: Map<string, Question> = new Map(
 );
 
 export function getQuestionById(id: string): Question | undefined {
-  return QUESTION_INDEX.get(id);
+  const builtIn = QUESTION_INDEX.get(id);
+  if (builtIn) return builtIn;
+
+  // Pack-authored questions are not in the built-in index. Without this an
+  // answer to an industry question throws "Unknown question id" on submit.
+  for (const pack of getAllCachedPacks()) {
+    const found = pack.questions.find((q) => q.id === id);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 export const STANDARD_QUESTION_COUNT = STANDARD_QUESTIONS.length; // 19

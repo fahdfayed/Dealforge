@@ -76,6 +76,11 @@ export type CommercialHeadline = {
 // "controlled input first" design principle.
 export type DealDNA = {
   engagementType: EngagementType | null;
+  // The authored industry this deal belongs to, normally inherited from the
+  // account. `industry` is the denormalized display name kept alongside it so
+  // existing deals, PDFs and the compare view keep working while deals are
+  // migrated onto accounts.
+  industryId: string | null;
   industry: string;
   countries: string[];
   clientType: ClientType | null;
@@ -386,6 +391,7 @@ export function createEmptyDealTwin(seed: { company: string; owner: string }): D
     },
     dealDNA: {
       engagementType: null,
+      industryId: null,
       industry: "",
       countries: [],
       clientType: null,

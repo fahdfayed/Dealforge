@@ -3,7 +3,7 @@
 // reprioritise, re-phase and add custom components afterward (doc 6.3).
 import type { EngagementType, Priority, SolutionComponent } from "@/types/deal-twin";
 
-type ComponentTemplate = {
+export type ComponentTemplate = {
   category: string;
   label: string;
   priority: Priority;
