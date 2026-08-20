@@ -146,8 +146,16 @@ export type DesignLevers = {
 export const PRIORITIES = ["Required", "Recommended", "Optional"] as const;
 export type Priority = (typeof PRIORITIES)[number];
 
+// Where a component came from. `custom` on SolutionComponent already marks
+// user-added ones; this distinguishes the catalogue layers from each other so
+// the UI can show why a component is proposed.
+export type ComponentSource = "engagement" | "industry" | "common" | "custom";
+
 export type SolutionComponent = {
   id: string;
+  // The catalogue template this came from, absent for user-added components.
+  templateKey?: string;
+  source?: ComponentSource;
   category: string;
   label: string;
   included: boolean;

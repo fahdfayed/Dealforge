@@ -3,16 +3,42 @@
 import { mutateDeal } from "@/lib/deal-mutation";
 import { applyPathInclusion } from "@/lib/solution-forge";
 import { buildComponentsForEngagement } from "@/lib/solution-catalog";
+import { getPackSync } from "@/lib/industry-packs";
 import { computeCommercialScenario, DEFAULT_COMMERCIAL_INPUTS } from "@/lib/commercial";
 import type { SolutionPath } from "@/types/deal-twin";
 
+// Seeds the catalogue, and tops it up afterwards. Seeding used to be strictly
+// one-shot — `components.length > 0` meant a later Deal DNA change could never
+// contribute anything — so setting the industry after building the offer left
+// its components silently absent. Existing components are never modified or
+// removed here; only templates not already present are appended.
 export async function loadCatalogAction(dealId: string, expectedRevision: number) {
   await mutateDeal(
     dealId,
     expectedRevision,
     (twin) => {
-      if (!twin.dealDNA.engagementType || twin.solution.components.length > 0) return twin;
-      return { ...twin, solution: { ...twin.solution, components: buildComponentsForEngagement(twin.dealDNA.engagementType) } };
+      const engagementType = twin.dealDNA.engagementType;
+      if (!engagementType) return twin;
+
+      const addOns = getPackSync(twin.dealDNA.industryId)?.componentAddOns ?? [];
+      const candidates = buildComponentsForEngagement(engagementType, addOns);
+
+      const existingKeys = new Set(
+        twin.solution.components.map((c) => c.templateKey).filter(Boolean) as string[]
+      );
+      const existingLabels = new Set(twin.solution.components.map((c) => c.label));
+
+      // Components created before templateKey existed carry no key, so fall
+      // back to the label to avoid re-adding what is already there.
+      const missing = candidates.filter(
+        (c) => !existingKeys.has(c.templateKey ?? "") && !existingLabels.has(c.label)
+      );
+      if (missing.length === 0) return twin;
+
+      return {
+        ...twin,
+        solution: { ...twin.solution, components: [...twin.solution.components, ...missing] },
+      };
     },
     `/deals/${dealId}/build-offer`
   );
