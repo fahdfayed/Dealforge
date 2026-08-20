@@ -7,6 +7,7 @@
 import type { Authority, DealTwin, Factor, Momentum, Stage } from "@/types/deal-twin";
 import { getActiveQuestions } from "@/lib/questions";
 import { evaluateSubmissionCheck } from "@/lib/submission-check";
+import { getPackSync } from "@/lib/industry-packs";
 
 function clamp(n: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, n));
@@ -54,7 +55,14 @@ export function evidenceIntegrity(twin: DealTwin): number {
   const contradictions =
     twin.evidence.filter((e) => e.authority === "Contradictory").length +
     twin.answers.filter((a) => a.authority === "Contradictory").length;
-  return clamp(evidenceAvg * 0.72 + dnaQuality * 0.28 - 4 * contradictions, 0, 100);
+  const w = weightsFor(twin);
+  return clamp(
+    evidenceAvg * w.integrityEvidenceShare +
+      dnaQuality * w.integrityDnaShare -
+      w.integrityContradictionPenalty * contradictions,
+    0,
+    100
+  );
 }
 
 export function discoveryCoverage(twin: DealTwin): { pct: number; answered: number; total: number } {
@@ -146,16 +154,74 @@ const MOMENTUM_SCORE: Record<Momentum, number> = {
   "At risk": 10,
 };
 
+// Scoring weights, named so an industry pack can override them.
+//
+// These were inline numeric literals scattered through the functions below,
+// which meant "healthcare should weight compliance more heavily" had nowhere to
+// attach. Extracting them changes no behaviour on its own: with no override the
+// values are exactly what was hardcoded.
+//
+// Keys are stable identifiers referenced by industry pack scoringModifiers, so
+// renaming one silently drops any pack override that used the old name.
+export const DEFAULT_SCORING_WEIGHTS = {
+  // Win probability contribution, ten terms summing to 1.0.
+  winCoverage: 0.15,
+  winIntegrity: 0.15,
+  winMomentum: 0.1,
+  winUrgency: 0.08,
+  winRelationship: 0.1,
+  winBudget: 0.1,
+  winStakeholder: 0.12,
+  winOracle: 0.08,
+  winStrategicFit: 0.07,
+  winCrmProbability: 0.05,
+
+  // Complexity drivers. Complexity is subtracted from scope, delivery,
+  // estimate and margin, so these are the highest-leverage numbers here.
+  complexityPerEntity: 3,
+  complexityPerCountry: 8,
+  // Users per complexity point, expressed as a divisor so the arithmetic
+  // stays exact — a reciprocal weight would introduce floating-point drift.
+  complexityUsersPerPoint: 50,
+  complexityPerIntegration: 4,
+  complexityPerTestCycle: 3,
+
+  // The margin percentage treated as a full score.
+  marginAnchorPct: 35,
+
+  // Evidence integrity blend.
+  integrityEvidenceShare: 0.72,
+  integrityDnaShare: 0.28,
+  integrityContradictionPenalty: 4,
+} as const;
+
+export type ScoringWeightKey = keyof typeof DEFAULT_SCORING_WEIGHTS;
+export type ScoringWeights = Record<ScoringWeightKey, number>;
+
+// Resolves the weights for a deal: defaults, with any override its industry
+// pack supplies. Unknown keys in a pack are ignored rather than merged, so a
+// typo in authored content cannot introduce a phantom weight.
+export function weightsFor(twin: DealTwin): ScoringWeights {
+  const overrides = getPackSync(twin.dealDNA.industryId)?.scoringModifiers ?? {};
+  const resolved = { ...DEFAULT_SCORING_WEIGHTS } as ScoringWeights;
+  for (const key of Object.keys(DEFAULT_SCORING_WEIGHTS) as ScoringWeightKey[]) {
+    const value = overrides[key];
+    if (typeof value === "number" && Number.isFinite(value)) resolved[key] = value;
+  }
+  return resolved;
+}
+
 export function complexityIndex(twin: DealTwin): number {
   const dna = twin.dealDNA;
+  const w = weightsFor(twin);
   const integrations = numberAnswer(twin, "std-15") ?? 0;
   const testingCycles = numberAnswer(twin, "std-16") ?? 0;
   const raw =
-    (dna.entityCount ?? 0) * 3 +
-    dna.countries.length * 8 +
-    (dna.userCount ?? 0) / 50 +
-    integrations * 4 +
-    testingCycles * 3;
+    (dna.entityCount ?? 0) * w.complexityPerEntity +
+    dna.countries.length * w.complexityPerCountry +
+    (dna.userCount ?? 0) / w.complexityUsersPerPoint +
+    integrations * w.complexityPerIntegration +
+    testingCycles * w.complexityPerTestCycle;
   return clamp(raw);
 }
 
@@ -176,6 +242,7 @@ export type DimensionScores = {
 
 export function computeDimensions(twin: DealTwin): DimensionScores {
   const dna = twin.dealDNA;
+  const w = weightsFor(twin);
   const coverage = discoveryCoverage(twin).pct;
   const integrity = evidenceIntegrity(twin);
   const complexity = complexityIndex(twin);
@@ -191,7 +258,7 @@ export function computeDimensions(twin: DealTwin): DimensionScores {
   const estimate = Math.round((scope + integrity + delivery + (100 - complexity)) / 4);
 
   const marginRaw = twin.commercialHeadline.currentMargin;
-  const marginNormalized = marginRaw == null ? 0 : clamp((marginRaw / 35) * 100);
+  const marginNormalized = marginRaw == null ? 0 : clamp((marginRaw / w.marginAnchorPct) * 100);
   const fixedPriceExposure = dna.commercialModel === "Fixed price" ? 0 : 60;
   const margin = Math.round(
     (marginNormalized + scope + delivery + integrity + factorScore(dna.paymentFactor) + (100 - complexity) + fixedPriceExposure) / 7
@@ -206,16 +273,16 @@ export function computeDimensions(twin: DealTwin): DimensionScores {
   const oracle = Math.round((factorScore(dna.oracleFactor) + registrationScore) / 2);
 
   const win = Math.round(
-    coverage * 0.15 +
-      integrity * 0.15 +
-      MOMENTUM_SCORE[twin.commercialHeadline.momentum] * 0.1 +
-      factorScore(dna.urgencyFactor) * 0.08 +
-      factorScore(dna.relationshipFactor) * 0.1 +
-      factorScore(dna.budgetFactor) * 0.1 +
-      stakeholder * 0.12 +
-      oracle * 0.08 +
-      factorScore(dna.strategicFitFactor) * 0.07 +
-      (twin.commercialHeadline.crmProbability ?? 0) * 0.05
+    coverage * w.winCoverage +
+      integrity * w.winIntegrity +
+      MOMENTUM_SCORE[twin.commercialHeadline.momentum] * w.winMomentum +
+      factorScore(dna.urgencyFactor) * w.winUrgency +
+      factorScore(dna.relationshipFactor) * w.winRelationship +
+      factorScore(dna.budgetFactor) * w.winBudget +
+      stakeholder * w.winStakeholder +
+      oracle * w.winOracle +
+      factorScore(dna.strategicFitFactor) * w.winStrategicFit +
+      (twin.commercialHeadline.crmProbability ?? 0) * w.winCrmProbability
   );
 
   return { win, scope, delivery, estimate, margin, payment, stakeholder, oracle };
