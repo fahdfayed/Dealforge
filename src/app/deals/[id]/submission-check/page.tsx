@@ -50,7 +50,6 @@ export default async function SubmissionCheckPage({ params }: { params: Promise<
         <EmptyState
           icon="✓"
           title="No issues found"
-          description="All submission checks passed across all perspectives."
         />
       )}
     </div>

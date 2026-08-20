@@ -30,7 +30,7 @@ export default async function HealthDetailsPage({ params }: { params: Promise<{ 
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
         <Card>
-          <CardHeader title="Probability range" subtitle="Low / likely / high, subject to stage and gate caps." />
+          <CardHeader title="Probability range" />
           <CardBody>
             <div className="flex items-baseline gap-4">
               <StatBig label="Low" value={probability.low} />
@@ -45,7 +45,7 @@ export default async function HealthDetailsPage({ params }: { params: Promise<{ 
         </Card>
 
         <Card>
-          <CardHeader title="Pursuit gates" subtitle="The most restrictive incomplete gate sets the cap." />
+          <CardHeader title="Pursuit gates" />
           <CardBody className="space-y-3">
             {probability.gates.map((g) => (
               <div key={g.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-100 px-3 py-2.5">

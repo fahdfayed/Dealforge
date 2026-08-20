@@ -71,7 +71,7 @@ export function CommercialEstimator({
         </Card>
 
         <Card>
-          <CardHeader title="Context-specific drivers" subtitle="Business-case-specific effort adders." />
+          <CardHeader title="Context-specific drivers" />
           <CardBody className="space-y-2">
             {inputs.contextDrivers.map((d, i) => (
               <div key={i} className="flex gap-2">
@@ -114,7 +114,7 @@ export function CommercialEstimator({
 
       <div className="space-y-6">
         <Card className="sticky top-6">
-          <CardHeader title="Result" subtitle="Updates live as you change inputs." />
+          <CardHeader title="Result" />
           <CardBody className="space-y-4">
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-500">Scenario name</label>

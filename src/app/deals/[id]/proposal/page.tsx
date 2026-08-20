@@ -58,7 +58,6 @@ export default async function ProposalPage({
           <EmptyState
             icon="📄"
             title="No proposals yet"
-            description="Generate a proposal from your Deal Twin and commercial position."
           />
         ) : (
           twin.proposals
@@ -106,7 +105,7 @@ export default async function ProposalPage({
 
         {matchedProof.length > 0 && (
           <Card>
-            <CardHeader title="Matched proof" subtitle="Tag-matched from the Proof Vault — nothing invented." />
+            <CardHeader title="Matched proof" />
             <CardBody className="space-y-2">
               {matchedProof.map((p) => (
                 <p key={p.id} className="text-sm text-slate-700">
@@ -120,7 +119,7 @@ export default async function ProposalPage({
 
       <div>
         <Card>
-          <CardHeader title="Generate a proposal" subtitle="Assembled from the Deal Twin, saved solution and saved commercial position." />
+          <CardHeader title="Generate a proposal" />
           <CardBody>
             <form action={generateProposalAction.bind(null, id, rev)} className="space-y-3">
               <Select name="format" label="Format" required defaultValue={PROPOSAL_FORMATS[0]}>

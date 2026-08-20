@@ -11,7 +11,7 @@ const APPS = [
   { id: "today", label: "Today", href: "/", icon: LayoutDashboard },
   { id: "deals", label: "Deals", href: "/deals", icon: Briefcase },
   { id: "portfolio", label: "Portfolio", href: "/portfolio", icon: BarChart3 },
-  { id: "vault", label: "Proof Vault", href: "/proof", icon: Library },
+  { id: "vault", label: "Docs", href: "/proof", icon: Library },
   { id: "team", label: "Team", href: "/team", icon: Users },
 ];
 

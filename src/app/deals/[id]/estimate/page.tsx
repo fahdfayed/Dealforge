@@ -44,7 +44,6 @@ export default async function DetailedEstimatePage({
           <EmptyState
             icon="📊"
             title="No scenarios saved yet"
-            description="Save a commercial scenario to compare estimates and set baselines."
           />
         ) : (
           twin.commercialScenarios

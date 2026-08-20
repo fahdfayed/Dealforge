@@ -17,15 +17,14 @@ export default async function ProofVaultPage() {
 
   return (
     <div>
-      <PageHeader title="Proof Vault" subtitle="Reusable evidence with controlled metadata. Matching uses deal context and tags — nothing is invented." />
+      <PageHeader title="Docs" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           {assets.length === 0 ? (
             <EmptyState
               icon="📋"
-              title="No proof assets yet"
-              description="Add evidence to build a reusable library of supporting documents and data."
+              title="No documents yet"
             />
           ) : (
             assets.map((asset) => (
@@ -54,7 +53,7 @@ export default async function ProofVaultPage() {
 
         <div>
           <Card>
-            <CardHeader title="Add proof" />
+            <CardHeader title="Add document" />
             <CardBody>
               <form action={addProofAssetAction} className="space-y-3">
                 <Input name="title" label="Title" required placeholder="Evidence title" />
@@ -77,7 +76,7 @@ export default async function ProofVaultPage() {
                   <p className="mt-1 text-xs text-slate-400">Max 15 MB.</p>
                 </div>
                 <ActionButton type="submit" variant="primary" className="w-full">
-                  Add proof
+                  Add document
                 </ActionButton>
               </form>
             </CardBody>

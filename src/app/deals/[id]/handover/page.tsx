@@ -31,7 +31,6 @@ export default async function HandoverPage({ params }: { params: Promise<{ id: s
       <Card>
         <CardHeader
           title="Delivery handover readiness"
-          subtitle="Generated from the same Answer Graph, solution, price, boundaries and commitments that shaped the proposal."
           action={<Badge color={allReady ? "emerald" : "amber"}>{allReady ? "Ready" : "Incomplete"}</Badge>}
         />
         <CardBody className="space-y-2">

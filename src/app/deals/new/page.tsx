@@ -13,7 +13,6 @@ export default function NewDealPage() {
     <div className="max-w-2xl">
       <PageHeader
         title="New deal"
-        subtitle="Start blank or from a template — both start with an empty Deal Twin."
       />
 
       <div className="mb-4 flex gap-2 border-b border-slate-200">
@@ -44,7 +43,6 @@ export default function NewDealPage() {
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
-              <p className="text-xs text-slate-500">Everything else is set up on the Deal Twin, Understand and Build offer screens.</p>
               <div className="flex justify-end border-t border-slate-100 pt-4">
                 <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
                   Create blank Deal Twin

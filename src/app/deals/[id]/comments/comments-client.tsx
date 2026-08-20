@@ -52,7 +52,7 @@ export function CommentsClient({ initialDeal, dealId }: { initialDeal: Deal; dea
   return (
     <div className="max-w-3xl space-y-6">
       <Card>
-        <CardHeader title="Team comments" subtitle="Discuss this deal with your team" />
+        <CardHeader title="Team comments" />
         <CardBody>
           <form onSubmit={handleAddComment} className="mb-6 space-y-3">
             <Textarea
@@ -90,7 +90,6 @@ export function CommentsClient({ initialDeal, dealId }: { initialDeal: Deal; dea
             <EmptyState
               icon="💬"
               title="No comments yet"
-              description="Start the conversation with your team about this deal."
               compact
             />
           ) : (

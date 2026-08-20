@@ -27,7 +27,7 @@ export default async function TodayPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Today" subtitle="One clear move, current health, and the highest-impact decision queue." />
+      <PageHeader title="Today" />
 
       {oneMove ? (
         <Card>
@@ -52,7 +52,7 @@ export default async function TodayPage() {
       </div>
 
       <Card>
-        <CardHeader title="Decision queue" subtitle="Highest-impact actions across the pipeline." />
+        <CardHeader title="Decision queue" />
         <CardBody className="space-y-2">
           {queue.length === 0 && <p className="text-sm text-slate-500">Nothing queued.</p>}
           {queue.map(({ deal, action }, i) => (

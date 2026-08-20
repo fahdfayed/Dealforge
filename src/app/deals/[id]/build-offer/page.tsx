@@ -88,7 +88,7 @@ export default async function BuildOfferPage({
           </Card>
 
           <Card>
-            <CardHeader title="Adjust scope" subtitle="Included capabilities." />
+            <CardHeader title="Adjust scope" />
             <CardBody>
               <form action={updateScopeAction.bind(null, deal.id, deal.revision)} className="space-y-2">
                 {twin.solution.components.map((c) => (
@@ -108,7 +108,7 @@ export default async function BuildOfferPage({
           </Card>
 
           <Card>
-            <CardHeader title="Set effort and sell rate" subtitle="Creates the commercial base." />
+            <CardHeader title="Set effort and sell rate" />
             <CardBody>
               <p className="mb-3 text-xs text-slate-500">
                 Adjusted effort from included capabilities: <strong>{pricing.adjustedEffortDays} days</strong>

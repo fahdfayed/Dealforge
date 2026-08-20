@@ -51,7 +51,7 @@ export function NegotiationPanel({
         </Card>
 
         <Card>
-          <CardHeader title="Reciprocal value exchanges" subtitle="Select what you'd trade for the reduction, rather than discounting without change." />
+          <CardHeader title="Reciprocal value exchanges" />
           <CardBody className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {VALUE_EXCHANGES.map((x) => (
               <label key={x} className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">

@@ -25,7 +25,6 @@ export default async function TeamPage() {
     <div>
       <PageHeader
         title="Team Management"
-        subtitle="Manage workspace members, roles, and permissions"
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -34,7 +33,6 @@ export default async function TeamPage() {
             <EmptyState
               icon="👥"
               title="No team members yet"
-              description="Add team members to collaborate on deals and enable access control."
             />
           ) : (
             members.map((member) => (

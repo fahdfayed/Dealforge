@@ -63,7 +63,7 @@ export function DealTeamPanel({
     <div className="space-y-6">
       {/* Deal Access */}
       <Card>
-        <CardHeader title="Access & Sharing" subtitle="Who has access to this deal" />
+        <CardHeader title="Access & Sharing" />
         <CardBody className="space-y-3">
           {accesses.length === 0 ? (
             <p className="text-sm text-slate-500">Only the owner has access.</p>
@@ -131,7 +131,6 @@ export function DealTeamPanel({
       <Card>
         <CardHeader
           title="Team Assignments"
-          subtitle="Roles and responsibilities on this deal"
         />
         <CardBody className="space-y-3">
           {responsibilities.length === 0 ? (

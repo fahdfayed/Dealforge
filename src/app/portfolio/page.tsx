@@ -27,7 +27,7 @@ export default async function PortfolioPage() {
 
   return (
     <div>
-      <PageHeader title="Portfolio" subtitle="Opportunity quality and exceptions across every persisted Deal Twin." />
+      <PageHeader title="Portfolio" />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatTile label="Deals" value={String(deals.length)} />
@@ -38,7 +38,7 @@ export default async function PortfolioPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Weak discovery" subtitle="Deals being priced with incomplete knowledge (<50% coverage)." />
+          <CardHeader title="Weak discovery" />
           <CardBody className="space-y-2">
             {weakDiscovery.length === 0 && <p className="text-sm text-slate-500">None.</p>}
             {weakDiscovery.map((d) => (
@@ -50,7 +50,7 @@ export default async function PortfolioPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Unpriced promises" subtitle="Proposals carrying avoidable delivery exposure." />
+          <CardHeader title="Unpriced promises" />
           <CardBody className="space-y-2">
             {unpriced.length === 0 && <p className="text-sm text-slate-500">None.</p>}
             {unpriced.map(({ deal, count }) => (
@@ -62,7 +62,7 @@ export default async function PortfolioPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Commercially unsafe deals" subtitle="High win position with weak scope, margin or delivery health." />
+          <CardHeader title="Commercially unsafe deals" />
           <CardBody className="space-y-2">
             {unsafe.length === 0 && <p className="text-sm text-slate-500">None.</p>}
             {unsafe.map((d) => (
@@ -74,7 +74,7 @@ export default async function PortfolioPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Active playbook mix" subtitle="Engagement types dominating the pipeline." />
+          <CardHeader title="Active playbook mix" />
           <CardBody className="space-y-2">
             {mix.length === 0 && <p className="text-sm text-slate-500">No data yet.</p>}
             {mix.map((m) => (
@@ -87,7 +87,7 @@ export default async function PortfolioPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Leadership exceptions" subtitle="Where an approval or intervention is required." />
+          <CardHeader title="Leadership exceptions" />
           <CardBody className="space-y-2">
             {exceptions.length === 0 && <p className="text-sm text-slate-500">None.</p>}
             {exceptions.map((e, i) => (

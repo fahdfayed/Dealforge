@@ -41,7 +41,7 @@ export default async function CommitmentsPage({
         )}
 
         <Card>
-          <CardHeader title="Promise Ledger" subtitle="Every statement traced into source, owner, scope and price." />
+          <CardHeader title="Promise Ledger" />
           <CardBody className="space-y-3">
             {twin.promises.length === 0 && <p className="text-sm text-slate-500">No promises recorded yet. Add them from your Deal Twin or record them manually.</p>}
             {twin.promises.map((p) => (
@@ -80,7 +80,7 @@ export default async function CommitmentsPage({
 
         {candidates.length > 0 && (
           <Card>
-            <CardHeader title="Suggested from the Deal Twin" subtitle="Selected from solution scope and boundaries — not invented." />
+            <CardHeader title="Suggested from the Deal Twin" />
             <CardBody className="space-y-2">
               {candidates.map((c, i) => (
                 <div key={i} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm">

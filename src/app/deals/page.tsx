@@ -56,7 +56,6 @@ export default async function DealsPage({
     <div>
       <PageHeader
         title="Deals"
-        subtitle="What opportunity are we governing? Every Living Deal Twin currently open."
         action={
           <Link href="/deals/new" className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-indigo-500">
             New deal

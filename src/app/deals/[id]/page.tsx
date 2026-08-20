@@ -165,7 +165,7 @@ export default async function DealTwinPage({
           </Card>
 
           <Card>
-            <CardHeader title="Decision queue" subtitle="Highest-impact actions for this deal." />
+            <CardHeader title="Decision queue" />
             <CardBody className="space-y-2">
               {actions.map((a) => (
                 <p key={a.id} className="text-xs text-slate-600">

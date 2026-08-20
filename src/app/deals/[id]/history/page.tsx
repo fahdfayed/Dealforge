@@ -92,7 +92,7 @@ export default async function DealHistoryPage({
   return (
     <div className="space-y-6 max-w-2xl">
       <Card>
-        <CardHeader title="Deal history" subtitle="Revision timeline and key milestones" />
+        <CardHeader title="Deal history" />
         <CardBody>
           <div className="space-y-6">
             {/* Revision info */}

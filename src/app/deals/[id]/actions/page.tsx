@@ -31,15 +31,13 @@ export default async function ActionsPage({
       <Card>
         <CardHeader
           title="Open actions"
-          subtitle="Track all deal-related tasks and follow-ups"
           action={<Badge color="slate">{openActions.length}</Badge>}
         />
         <CardBody>
           {openActions.length === 0 ? (
             <EmptyState
               icon="✓"
-              title="All caught up!"
-              description="No open actions at the moment. Create one to track a task."
+              title="No open actions"
               compact
             />
           ) : (
@@ -100,7 +98,7 @@ export default async function ActionsPage({
       )}
 
       <Card>
-        <CardHeader title="Create new action" subtitle="Track deal tasks, follow-ups, and deliverables" />
+        <CardHeader title="Create new action" />
         <CardBody>
           <form action={createActionAction.bind(null, id, deal.revision)} className="space-y-3">
             <div>
