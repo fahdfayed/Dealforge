@@ -18,28 +18,6 @@ const APPS = [
 export function SidebarNav() {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const dealMatch = pathname.match(/^\/deals\/([^/]+)(?:\/(.*))?$/);
-  const activeDealId = dealMatch && dealMatch[1] !== "new" ? dealMatch[1] : null;
-  const currentSegment = dealMatch && dealMatch[2] ? dealMatch[2].split("/")[0] : "";
-
-  const dealMenuItems = [
-    { segment: "", label: "Overview" },
-    { segment: "understand", label: "Understand" },
-    { segment: "health", label: "Health" },
-    { segment: "sources", label: "Sources" },
-    { segment: "build-offer", label: "Build Offer" },
-    { segment: "solution", label: "Solution" },
-    { segment: "estimate", label: "Estimate" },
-    { segment: "negotiate", label: "Negotiate" },
-    { segment: "commitments", label: "Commitments" },
-    { segment: "submission-check", label: "Submission Check" },
-    { segment: "actions", label: "Actions" },
-    { segment: "client-share", label: "Client Share" },
-    { segment: "oracle", label: "Oracle" },
-    { segment: "proposal", label: "Proposal" },
-    { segment: "handover", label: "Handover" },
-  ];
-
   return (
     <>
       {/* Odoo-style top bar */}
@@ -97,27 +75,6 @@ export function SidebarNav() {
             </nav>
           </div>
 
-          {/* Deal menu - shown when in a deal context */}
-          {activeDealId && sidebarOpen && (
-            <div className="p-3">
-              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 px-2">Menu</div>
-              <nav className="space-y-0.5">
-                {dealMenuItems.map((item) => (
-                  <Link
-                    key={item.segment}
-                    href={`/deals/${activeDealId}${item.segment ? `/${item.segment}` : ""}`}
-                    className={`block px-2 py-1.5 text-sm rounded transition-colors ${
-                      currentSegment === item.segment || (item.segment === "" && currentSegment === "")
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          )}
         </div>
 
         {/* Logout button at bottom */}

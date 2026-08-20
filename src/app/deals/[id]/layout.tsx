@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
 import { computeProbability, getSafetyMode, computeDimensions } from "@/lib/scoring";
 import { Badge } from "@/components/ui/badge";
+import { DealStageNav } from "@/components/deal-stage-nav";
+import { lensesFor, stagesFor } from "@/lib/relevance";
 
 export default async function DealLayout({
   children,
@@ -17,6 +19,8 @@ export default async function DealLayout({
   const probability = computeProbability(deal.twin);
   const dims = computeDimensions(deal.twin);
   const safety = getSafetyMode(deal.twin, probability, dims);
+  const stages = stagesFor(deal.twin);
+  const lenses = lensesFor(deal.twin);
 
   return (
     <div>
@@ -50,6 +54,9 @@ export default async function DealLayout({
           )}
         </div>
       </div>
+
+      <DealStageNav dealId={deal.id} stages={stages} lenses={lenses} />
+
       {children}
     </div>
   );
