@@ -11,6 +11,16 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  // Security: warn if credentials are in URL (they shouldn't be)
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("password") || params.has("confirmPassword") || params.has("email")) {
+      console.warn("Security: Credentials should never be passed via URL. Use form submission with POST instead.");
+      // Clean URL to remove sensitive data from history/logs
+      window.history.replaceState({}, document.title, "/auth/signup");
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
