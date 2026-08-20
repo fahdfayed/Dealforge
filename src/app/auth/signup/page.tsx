@@ -86,7 +86,11 @@ export default function SignupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* method="post" matters: if a submit lands before React has
+              hydrated, the browser falls back to a native submission, and the
+              default of GET would put the password in the URL, browser history
+              and server logs. */}
+          <form onSubmit={handleSubmit} method="post" className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Full name

@@ -3,6 +3,7 @@
 // multiplicative vs additive drivers is this codebase's transparent,
 // commented interpretation (same convention as scoring.ts).
 import type { CommercialScenario, CommercialScenarioInputs } from "@/types/deal-twin";
+import { newId } from "@/lib/id";
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
@@ -39,7 +40,7 @@ export function computeCommercialScenario(name: string, inputs: CommercialScenar
   }
 
   return {
-    id: crypto.randomUUID(),
+    id: newId(),
     name,
     savedAt: new Date().toISOString(),
     status: "Draft" as const,

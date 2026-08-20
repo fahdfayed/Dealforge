@@ -1,6 +1,6 @@
 "use client";
 
-import { listDeals } from "@/lib/deal-repo";
+import type { listDeals } from "@/lib/deal-repo";
 import { Card, CardBody } from "@/components/ui/card";
 
 export function DealSelector({
