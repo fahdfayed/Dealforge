@@ -5,6 +5,7 @@
 // section 4.2 — "controlled input first."
 import type { DealDNA, EngagementType } from "@/types/deal-twin";
 import { getAllCachedPacks, getPackSync } from "@/lib/industry-packs";
+import { ALL_REGION_QUESTIONS, localisationQuestions } from "@/lib/localisation";
 
 export type QuestionInputType = "single" | "multiple" | "number";
 
@@ -189,6 +190,10 @@ export function getActiveQuestions(dna: DealDNA): Question[] {
   if (dna.countries.length > 1) {
     active.push(...MULTI_COUNTRY_PACK);
   }
+  // Statutory scope by region. Applies from the first country, not the second:
+  // a single-country UAE deal still needs the VAT and WPS questions, which the
+  // multi-country pack above deliberately does not ask.
+  active.push(...localisationQuestions(dna.countries));
   // The industry's authored pack. Read synchronously from the pack cache; see
   // lib/industry-packs.ts for why resolution is split async-load/sync-read.
   // This replaced a case-sensitive `REGULATED_INDUSTRIES.includes(industry)`
@@ -215,6 +220,7 @@ const QUESTION_SOURCES: Question[][] = [
   MULTI_COUNTRY_PACK,
   REGULATED_INDUSTRY_PACK,
   COMMERCIAL_MODEL_PACK,
+  ALL_REGION_QUESTIONS,
 ];
 
 const QUESTION_INDEX: Map<string, Question> = new Map(
