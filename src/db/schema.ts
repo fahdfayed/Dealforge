@@ -218,3 +218,73 @@ export const candidateSearches = sqliteTable("candidate_searches", {
   requisitionId: text("requisition_id"),
   createdAt: integer("created_at").notNull(),
 });
+
+// Manpower requisitions (MRFs).
+//
+// Sales raises one, TA acknowledges it, and it cannot reach external sourcing
+// until the gate in lib/requisitions.ts is satisfied. Timestamps are columns
+// rather than derived from the event log because every SLA is measured off
+// them and a report should not have to replay history to answer "was this
+// acknowledged in time".
+export const requisitions = sqliteTable("requisitions", {
+  id: text("id").primaryKey(),
+  // Human reference used in conversation and email subjects: MRF-0001.
+  reference: text("reference").notNull().unique(),
+  accountId: text("account_id"),
+  accountName: text("account_name").notNull().default(""),
+  // Set when the requirement came out of a won staff augmentation deal.
+  dealId: text("deal_id"),
+  roleTitle: text("role_title").notNull(),
+  primarySkill: text("primary_skill").notNull().default(""),
+  requiredSkills: text("required_skills").notNull().default("[]"),
+  positions: integer("positions").notNull().default(1),
+  location: text("location").notNull().default(""),
+  country: text("country").notNull().default(""),
+  durationMonths: integer("duration_months"),
+  budgetRate: real("budget_rate"),
+  budgetCurrency: text("budget_currency").notNull().default("AED"),
+  budgetRateUnit: text("budget_rate_unit").notNull().default("Per day"),
+  minYears: integer("min_years"),
+  startBy: integer("start_by"),
+  priority: text("priority").notNull().default("Normal"),
+  jobDescription: text("job_description").notNull().default(""),
+  raisedBy: text("raised_by").notNull().default(""),
+  salesOwner: text("sales_owner").notNull().default(""),
+  taOwner: text("ta_owner").notNull().default(""),
+  practiceHead: text("practice_head").notNull().default(""),
+  status: text("status").notNull().default("Raised"),
+  raisedAt: integer("raised_at").notNull(),
+  acknowledgedAt: integer("acknowledged_at"),
+  acknowledgedBy: text("acknowledged_by").notNull().default(""),
+  calibratedAt: integer("calibrated_at"),
+  calibrationNotes: text("calibration_notes").notNull().default(""),
+  calibrationParticipants: text("calibration_participants").notNull().default("[]"),
+  resourcingCheckedAt: integer("resourcing_checked_at"),
+  resourcingCheckedBy: text("resourcing_checked_by").notNull().default(""),
+  resourcingOutcome: text("resourcing_outcome").notNull().default("Not yet checked"),
+  resourcingNotes: text("resourcing_notes").notNull().default(""),
+  decision: text("decision"),
+  decisionAt: integer("decision_at"),
+  decisionBy: text("decision_by").notNull().default(""),
+  decisionReason: text("decision_reason").notNull().default(""),
+  firstProfileAt: integer("first_profile_at"),
+  closedAt: integer("closed_at"),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// What happened, when, and who did it.
+//
+// The columns above answer "where is this now"; this answers "how did it get
+// here". Kept separate so a correction to a timestamp cannot quietly rewrite
+// the history that the weekly governance numbers are drawn from.
+export const requisitionEvents = sqliteTable("requisition_events", {
+  id: text("id").primaryKey(),
+  requisitionId: text("requisition_id").notNull(),
+  kind: text("kind").notNull(),
+  fromStatus: text("from_status").notNull().default(""),
+  toStatus: text("to_status").notNull().default(""),
+  actor: text("actor").notNull().default(""),
+  note: text("note").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+});

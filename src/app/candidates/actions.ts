@@ -115,12 +115,17 @@ export async function updateCandidateAction(id: string, formData: FormData) {
 // Recording the search is the point, not a side effect: the process requires
 // the repository to be searched before external sourcing, and that rule can
 // only be enforced if searches leave a trace.
-export async function logSearchAction(filters: CandidateFilters, resultCount: number) {
+export async function logSearchAction(
+  filters: CandidateFilters,
+  resultCount: number,
+  requisitionId?: string | null
+) {
   const user = await getCurrentUser();
   await logCandidateSearch({
     searchedBy: user.name,
     query: filters.q ?? "",
     filters,
     resultCount,
+    requisitionId: requisitionId ?? null,
   });
 }

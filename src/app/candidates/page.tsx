@@ -63,7 +63,10 @@ export default async function CandidatesPage({
 
   // Only a real search is recorded. Logging every page view would drown the
   // "was the repository searched before sourcing" signal in noise.
-  if (hasQuery) await logSearchAction(filters, results.length);
+  // ?for=<requisition> ties the search to the requirement it was run for,
+  // which is what satisfies the "searched before sourcing" gate.
+  const forRequisition = one("for") ?? null;
+  if (hasQuery) await logSearchAction(filters, results.length, forRequisition);
 
   return (
     <div>
@@ -78,6 +81,16 @@ export default async function CandidatesPage({
           </Link>
         }
       />
+
+      {forRequisition && (
+        <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          Searching against{" "}
+          <Link href={`/requisitions/${forRequisition}`} className="font-medium underline underline-offset-2">
+            this requirement
+          </Link>
+          . Running a search here satisfies the repository check on its gate.
+        </div>
+      )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatTile label="Searches this week" value={String(metrics.searches)} />
@@ -94,6 +107,7 @@ export default async function CandidatesPage({
               {/* GET so a search is a URL: shareable, bookmarkable, and back
                   returns to the same result set. */}
               <form method="get" className="space-y-4">
+                {forRequisition && <input type="hidden" name="for" value={forRequisition} />}
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-500">Keywords</label>
                   <input
