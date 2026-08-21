@@ -17,6 +17,11 @@ import type { ComponentTemplate } from "@/lib/solution-catalog";
 type Seed = {
   id: string;
   name: string;
+  // Retired industries stay seeded but inactive. Their packs must remain in the
+  // table because a question id is resolved back to its definition by scanning
+  // every cached pack (getAllCachedPacks), so deleting a retired pack would
+  // orphan answers already captured against it on live deals.
+  active?: boolean;
   pack: Partial<IndustryPack>;
 };
 
@@ -119,11 +124,19 @@ export const INDUSTRY_SEEDS: Seed[] = [
           ["In-country only", "Regional", "None stated", "Unknown"], true),
         q("ind-government-6", "Government", "Public transparency or audit publication obligations?", "single",
           ["Yes", "No", "Unknown"]),
+        q("ind-government-7", "Government", "Grant or subsidy disbursement in scope?", "single",
+          ["Yes — with eligibility rules", "Yes — payment only", "No"]),
+        q("ind-government-8", "Government", "Citizen or vendor self-service portal required?", "single",
+          ["Yes", "No", "Unknown"]),
+        q("ind-government-9", "Government", "Government e-procurement platform to integrate", "single",
+          ["Yes — national platform", "Yes — sector platform", "No", "Unknown"], true),
       ],
       componentAddOns: [
         c("government-encumbrance", "Finance", "Budgetary control and encumbrance setup", "Required", 22, "Spend controlled against appropriation", "High", 1),
         c("government-fund-accounting", "Finance", "Fund accounting configuration", "Recommended", 15, "Funds reported separately", "Medium"),
         c("government-audit", "Compliance", "Procurement compliance and audit reporting", "Recommended", 12, "Audit-ready procurement trail", "Medium"),
+        c("government-eprocurement-integration", "Integrations", "Government e-procurement platform integration", "Recommended", 18, "Tenders and awards flow into finance", "High"),
+        c("government-self-service-portal", "APEX", "Citizen or vendor self-service portal", "Optional", 20, "Requests handled without back-office rekeying", "Medium", 2),
       ],
       scoringModifiers: { winCoverage: 0.18, complexityPerCountry: 10 },
       requiredGates: ["submission"],
@@ -133,6 +146,11 @@ export const INDUSTRY_SEEDS: Seed[] = [
   {
     id: "public-sector",
     name: "Public Sector",
+    // Retired: a strictly weaker duplicate of Government — three questions
+    // against six, the same proof tags, and no deal is sensibly one and not the
+    // other. Deals are repointed by migrate-industry-merges; the pack stays so
+    // answers already captured against these ids still resolve.
+    active: false,
     pack: {
       questions: [
         q("ind-public-sector-1", "Public Sector", "Budgetary control required?", "single", ["Yes", "No", "Unknown"], true),
@@ -150,7 +168,7 @@ export const INDUSTRY_SEEDS: Seed[] = [
   },
   {
     id: "financial-services",
-    name: "Financial Services",
+    name: "Banking & Financial Services",
     pack: {
       questions: [
         q("ind-financial-services-1", "Financial Services", "Regulatory reporting regimes in scope", "multiple",
@@ -162,11 +180,18 @@ export const INDUSTRY_SEEDS: Seed[] = [
           ["Yes", "No", "Unknown"], true),
         q("ind-financial-services-5", "Financial Services", "Data residency constraint", "single",
           ["In-country only", "Regional", "None stated", "Unknown"]),
+        // Absorbed from the retired Banking pack. Ids are unchanged so answers
+        // captured before the merge still resolve. Banking's regulator-approval
+        // question is not carried over — ind-financial-services-4 already asks it.
+        q("ind-banking-1", "Banking & Financial Services", "Core banking system to integrate", "single",
+          ["Flexcube", "Temenos", "Finacle", "Other", "None"]),
+        q("ind-banking-3", "Banking & Financial Services", "Daily transaction volume", "number", undefined),
       ],
       componentAddOns: [
         c("fs-regulatory-reporting", "Finance", "Regulatory reporting configuration", "Required", 20, "Reporting obligations met", "High", 1),
         c("fs-multi-ledger", "Finance", "Dual GAAP / multi-ledger setup", "Recommended", 16, "Parallel reporting bases", "Medium"),
         c("fs-volume-tuning", "Technical", "High-volume sub-ledger tuning", "Recommended", 12, "Period close within window", "Medium"),
+        c("banking-core-integration", "Integrations", "Core banking integration", "Recommended", 25, "Banking and finance aligned", "High"),
       ],
       scoringModifiers: { winIntegrity: 0.2 },
       proofTags: ["financial-services", "banking", "regulated"],
@@ -175,6 +200,9 @@ export const INDUSTRY_SEEDS: Seed[] = [
   {
     id: "banking",
     name: "Banking",
+    // Retired: merged into Banking & Financial Services, which now carries its
+    // core-banking and volume questions under their original ids.
+    active: false,
     pack: {
       questions: [
         q("ind-banking-1", "Banking", "Core banking system to integrate", "single",
@@ -201,11 +229,22 @@ export const INDUSTRY_SEEDS: Seed[] = [
         q("ind-insurance-2", "Insurance", "Claims handling in scope?", "single", ["Yes", "No", "Unknown"]),
         q("ind-insurance-3", "Insurance", "Reinsurance accounting required?", "single", ["Yes", "No", "Unknown"]),
         q("ind-insurance-4", "Insurance", "Actuarial reserve reporting in scope?", "single", ["Yes", "No", "Unknown"]),
+        q("ind-insurance-5", "Insurance", "Lines of business in scope", "multiple",
+          ["Motor", "Medical / health", "Property & casualty", "Life", "Marine", "Takaful"], true),
+        q("ind-insurance-6", "Insurance", "IFRS 17 reporting in scope?", "single",
+          ["Yes — part of this programme", "Already implemented", "No", "Unknown"], true),
+        q("ind-insurance-7", "Insurance", "Takaful or Sharia-compliant fund accounting required?", "single",
+          ["Yes", "No", "Unknown"]),
+        q("ind-insurance-8", "Insurance", "Broker commission and settlement in scope?", "single", ["Yes", "No", "Unknown"]),
+        q("ind-insurance-9", "Insurance", "Premium receivables and collections in scope?", "single", ["Yes", "No", "Unknown"]),
       ],
       componentAddOns: [
         c("insurance-policy-integration", "Integrations", "Policy administration integration", "Required", 22, "Policy and finance aligned", "High", 1),
         c("insurance-claims", "Finance", "Claims settlement accounting", "Recommended", 15, "Claims tracked to ledger", "Medium"),
         c("insurance-reinsurance", "Finance", "Reinsurance accounting configuration", "Optional", 14, "Ceded risk accounted", "Medium"),
+        c("insurance-ifrs17", "Finance", "IFRS 17 reporting configuration", "Recommended", 24, "Insurance contract reporting compliant", "High", 1),
+        c("insurance-takaful", "Finance", "Takaful fund accounting", "Optional", 14, "Participant and shareholder funds separated", "Medium"),
+        c("insurance-broker-settlement", "Finance", "Broker commission and settlement", "Optional", 12, "Intermediary balances reconciled", "Medium"),
       ],
       scoringModifiers: { winIntegrity: 0.18 },
       proofTags: ["insurance", "financial-services", "regulated"],
@@ -269,12 +308,20 @@ export const INDUSTRY_SEEDS: Seed[] = [
         q("ind-manufacturing-4", "Manufacturing", "Costing method", "single",
           ["Standard", "Actual", "Average", "Not yet confirmed"]),
         q("ind-manufacturing-5", "Manufacturing", "Quality management in scope?", "single", ["Yes", "No", "Unknown"]),
+        q("ind-manufacturing-6", "Manufacturing", "Fulfilment strategy", "single",
+          ["Make to stock", "Make to order", "Engineer to order", "Mixed"], true),
+        q("ind-manufacturing-7", "Manufacturing", "Subcontract or outside processing in scope?", "single", ["Yes", "No", "Unknown"]),
+        q("ind-manufacturing-8", "Manufacturing", "Warehouse management in scope?", "single",
+          ["Yes — full WMS", "Inventory management only", "No"]),
+        q("ind-manufacturing-9", "Manufacturing", "Plants or production sites in scope", "number", undefined),
       ],
       componentAddOns: [
         c("manufacturing-bom", "Supply Chain", "BOM and routing configuration", "Required", 24, "Production structures modelled", "High", 1),
         c("manufacturing-mes", "Integrations", "Shop floor / MES integration", "Recommended", 20, "Production data flows to ERP", "High"),
         c("manufacturing-costing", "Finance", "Manufacturing costing configuration", "Required", 16, "Product cost visible", "Medium"),
         c("manufacturing-quality", "Quality", "Quality management configuration", "Optional", 12, "Inspection and non-conformance tracked", "Medium"),
+        c("manufacturing-wms", "Supply Chain", "Warehouse management configuration", "Optional", 18, "Stock accurate to bin level", "Medium"),
+        c("manufacturing-subcontract", "Procurement", "Subcontract and outside processing", "Optional", 12, "Outsourced operations costed", "Medium"),
       ],
       proofTags: ["manufacturing", "supply-chain"],
     },
@@ -288,13 +335,56 @@ export const INDUSTRY_SEEDS: Seed[] = [
           ["Yes", "No", "Unknown"], true),
         q("ind-energy-utilities-2", "Energy & Utilities", "Joint venture accounting required?", "single", ["Yes", "No", "Unknown"]),
         q("ind-energy-utilities-3", "Energy & Utilities", "Regulatory rate or tariff reporting required?", "single", ["Yes", "No", "Unknown"]),
+        q("ind-energy-utilities-4", "Energy & Utilities", "Metering or customer billing system to integrate?", "single",
+          ["Yes — single system", "Yes — multiple systems", "No"]),
+        q("ind-energy-utilities-5", "Energy & Utilities", "Capital project accounting for network assets required?", "single",
+          ["Yes", "No", "Unknown"], true),
+        q("ind-energy-utilities-6", "Energy & Utilities", "Outage or work order management in scope?", "single", ["Yes", "No", "Unknown"]),
       ],
       componentAddOns: [
         c("energy-eam", "Assets", "Enterprise asset management configuration", "Required", 26, "Asset maintenance controlled", "High", 1),
         c("energy-jv", "Finance", "Joint venture accounting", "Optional", 16, "Partner shares accounted", "Medium"),
+        c("energy-capital-projects", "Finance", "Capital project and network asset accounting", "Recommended", 20, "Capital spend traced to asset", "Medium", 1),
+        c("energy-billing-integration", "Integrations", "Metering and billing system integration", "Optional", 20, "Consumption billed and reconciled", "High"),
       ],
       scoringModifiers: { complexityPerEntity: 4 },
       proofTags: ["energy", "utilities", "asset-intensive"],
+    },
+  },
+  {
+    // Split out from Energy & Utilities rather than merged into it: a producer
+    // or oilfield services client is governed by entitlement and partner
+    // accounting, a utility by tariff regulation and metering. One pack asking
+    // both sets of questions asks every client the wrong half.
+    id: "oil-gas",
+    name: "Oil & Gas",
+    pack: {
+      questions: [
+        q("ind-oil-gas-1", "Oil & Gas", "Segment", "single",
+          ["Upstream", "Midstream", "Downstream", "Oilfield services"], true),
+        q("ind-oil-gas-2", "Oil & Gas", "Production sharing or concession accounting required?", "single",
+          ["Yes — production sharing contract", "Yes — concession", "No", "Unknown"], true),
+        q("ind-oil-gas-3", "Oil & Gas", "Joint venture partner billing required?", "single",
+          ["Yes — as operator", "Yes — as non-operator", "No"], true),
+        q("ind-oil-gas-4", "Oil & Gas", "Authorisation for expenditure (AFE) tracking in scope?", "single",
+          ["Yes", "No", "Unknown"]),
+        q("ind-oil-gas-5", "Oil & Gas", "Asset maintenance and turnaround planning in scope?", "single",
+          ["Yes", "No", "Unknown"]),
+        q("ind-oil-gas-6", "Oil & Gas", "HSE incident and compliance reporting in scope?", "single",
+          ["Yes", "No", "Unknown"]),
+        q("ind-oil-gas-7", "Oil & Gas", "Operating entities, fields or sites in scope", "number", undefined),
+      ],
+      componentAddOns: [
+        c("oil-gas-jv-billing", "Finance", "Joint venture accounting and partner billing", "Required", 26, "Partner shares billed and recovered", "High", 1),
+        c("oil-gas-afe", "Finance", "AFE and capital authorisation tracking", "Required", 18, "Spend controlled against authorisation", "Medium", 1),
+        c("oil-gas-psc", "Finance", "Production sharing or concession accounting", "Recommended", 22, "Entitlement calculated to contract terms", "High"),
+        c("oil-gas-eam", "Assets", "Asset maintenance and turnaround planning", "Recommended", 24, "Maintenance controlled across the estate", "High"),
+        c("oil-gas-hse", "Compliance", "HSE incident and compliance reporting", "Optional", 10, "Incidents traceable and reportable", "Medium"),
+      ],
+      // Each field or operating entity behaves like its own book, the same
+      // reason construction carries a per-entity uplift.
+      scoringModifiers: { complexityPerEntity: 5 },
+      proofTags: ["oil-gas", "energy", "asset-intensive"],
     },
   },
   {
@@ -341,10 +431,10 @@ export async function seedIndustries(): Promise<{ industries: number; packs: num
   for (const seed of INDUSTRY_SEEDS) {
     await db
       .insert(industries)
-      .values({ id: seed.id, name: seed.name, active: 1, createdAt: now, updatedAt: now })
+      .values({ id: seed.id, name: seed.name, active: seed.active === false ? 0 : 1, createdAt: now, updatedAt: now })
       .onConflictDoUpdate({
         target: industries.id,
-        set: { name: seed.name, updatedAt: now },
+        set: { name: seed.name, active: seed.active === false ? 0 : 1, updatedAt: now },
       });
     industryCount++;
 

@@ -91,16 +91,37 @@ export function invalidatePackCache(): void {
   globalForPacks.__industryPackCache = undefined;
 }
 
+// Industries that have been merged away, mapped to the survivor.
+//
+// migrate-industry-merges repoints stored rows, but it cannot reach a database
+// nobody has migrated yet, and a deal payload can carry an id the accounts
+// table no longer uses. Resolving through the alias here means a stale id
+// yields the right pack rather than silently contributing nothing — which
+// would look like an industry that simply asks no questions.
+export const INDUSTRY_ALIASES: Record<string, string> = {
+  // A strictly weaker duplicate of Government.
+  "public-sector": "government",
+  // Merged into Banking & Financial Services, which kept the id.
+  banking: "financial-services",
+};
+
+export function resolveIndustryId(industryId: string | null | undefined): string | null {
+  if (!industryId) return null;
+  return INDUSTRY_ALIASES[industryId] ?? industryId;
+}
+
 // Synchronous reads for the engines. Return null when the cache is cold or the
 // industry has no pack, which callers treat as "no industry contribution".
 export function getPackSync(industryId: string | null | undefined): IndustryPack | null {
-  if (!industryId) return null;
-  return globalForPacks.__industryPackCache?.packsByIndustryId.get(industryId) ?? null;
+  const id = resolveIndustryId(industryId);
+  if (!id) return null;
+  return globalForPacks.__industryPackCache?.packsByIndustryId.get(id) ?? null;
 }
 
 export function getIndustrySync(industryId: string | null | undefined): Industry | null {
-  if (!industryId) return null;
-  return globalForPacks.__industryPackCache?.industriesById.get(industryId) ?? null;
+  const id = resolveIndustryId(industryId);
+  if (!id) return null;
+  return globalForPacks.__industryPackCache?.industriesById.get(id) ?? null;
 }
 
 // Every pack currently cached. Used to resolve a question id back to its
