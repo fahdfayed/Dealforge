@@ -117,6 +117,40 @@ const ENGAGEMENT_TEMPLATES: Record<EngagementType, ComponentTemplate[]> = {
   ],
 };
 
+// Custom APEX and VBCS extension patterns.
+//
+// These are a differentiator we sell alongside implementation work, and they
+// recur across sectors — an approval engine on AME/PCS is the same build for a
+// contractor as for an insurer. Holding them once here rather than repeating
+// them in every industry pack means a change to how we scope an extension is a
+// change in one place.
+//
+// Every template starts excluded (buildComponentsForEngagement sets
+// included: false), so offering these does not inflate an estimate. They are
+// options a consultant can turn on, not assumptions.
+export const APEX_EXTENSION_TEMPLATES: ComponentTemplate[] = [
+  { key: "apex-ext-approval-workflow", category: "Workflow", label: "Approval workflow on Oracle AME / PCS", priority: "Optional", effortDays: 14, outcome: "Approvals routed and audited in-system", risk: "Medium", phase: 2 },
+  { key: "apex-ext-core-integration", category: "Integrations", label: "APEX integration to EBS / Fusion (ISG, OIC, REST)", priority: "Optional", effortDays: 12, outcome: "Extension reads and writes core data safely", risk: "Medium", phase: 2 },
+  { key: "apex-ext-dashboards", category: "Analytics", label: "Interactive dashboards and reporting", priority: "Optional", effortDays: 10, outcome: "Operational reporting without a BI programme", risk: "Low", phase: 2 },
+  { key: "apex-ext-data-security", category: "Security", label: "Document and data encryption", priority: "Optional", effortDays: 8, outcome: "Sensitive records protected at rest", risk: "Medium", phase: 2 },
+  { key: "apex-ext-ocr-capture", category: "Automation", label: "OCR document capture", priority: "Optional", effortDays: 12, outcome: "Paper and PDF input captured without rekeying", risk: "Medium", phase: 2 },
+  { key: "apex-ext-rpa", category: "Automation", label: "RPA process automation", priority: "Optional", effortDays: 14, outcome: "Repetitive steps run unattended", risk: "Medium", phase: 2 },
+  { key: "apex-ext-genai", category: "Automation", label: "GenAI assistance inside the process", priority: "Optional", effortDays: 12, outcome: "Drafting and summarisation where the work happens", risk: "High", phase: 2 },
+  { key: "apex-ext-self-service-portal", category: "APEX", label: "External self-service portal", priority: "Optional", effortDays: 20, outcome: "Third parties transact without back-office rekeying", risk: "Medium", phase: 2 },
+];
+
+// Engagements that have a Fusion or EBS estate worth extending. Offering APEX
+// options on a staff augmentation or database engagement would be noise on a
+// screen whose whole problem was having too much on it.
+const APEX_EXTENSIBLE: ReadonlySet<EngagementType> = new Set<EngagementType>([
+  "Fusion implementation",
+  "EBS modernisation",
+  "APEX & VBCS",
+  "ECC",
+  "Integration",
+  "HCM/payroll",
+]);
+
 // The templates that apply to a deal: the engagement catalogue, the industry
 // pack's add-ons, and the common set that applies to everything. Exported so
 // the UI can show what an industry would contribute before committing to it.
@@ -127,6 +161,9 @@ export function templatesFor(
   const layered: Array<ComponentTemplate & { source: ComponentSource }> = [
     ...ENGAGEMENT_TEMPLATES[engagementType].map((t) => ({ ...t, source: "engagement" as const })),
     ...industryAddOns.map((t) => ({ ...t, source: "industry" as const })),
+    ...(APEX_EXTENSIBLE.has(engagementType)
+      ? APEX_EXTENSION_TEMPLATES.map((t) => ({ ...t, source: "apex" as const }))
+      : []),
     ...COMMON_TEMPLATES.map((t) => ({ ...t, source: "common" as const })),
   ];
 
