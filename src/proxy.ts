@@ -1,9 +1,16 @@
+// Runs before a route renders. Renamed from middleware.ts, which Next 16
+// deprecates in favour of this convention.
+//
+// This is a cheap early redirect, not the access control. It runs before the
+// database is reachable, so it can only see whether an auth_token cookie
+// exists — not whether it means anything. requireUser() in lib/identity.ts is
+// what actually verifies a session, and every page and action goes through it.
 import { NextRequest, NextResponse } from "next/server";
 
 const publicRoutes = ["/auth/login", "/auth/signup"];
 const apiRoutes = ["/api"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Allow API routes and public auth routes
