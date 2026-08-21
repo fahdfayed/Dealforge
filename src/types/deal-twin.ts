@@ -176,7 +176,7 @@ export type Priority = (typeof PRIORITIES)[number];
 // Where a component came from. `custom` on SolutionComponent already marks
 // user-added ones; this distinguishes the catalogue layers from each other so
 // the UI can show why a component is proposed.
-export type ComponentSource = "engagement" | "industry" | "common" | "apex" | "custom";
+export type ComponentSource = "engagement" | "industry" | "localisation" | "common" | "apex" | "custom";
 
 export type SolutionComponent = {
   id: string;

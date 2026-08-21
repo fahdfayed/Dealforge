@@ -15,6 +15,7 @@
 // Type-only import: erased at compile time, so the cycle with lib/questions.ts
 // exists only in the type graph.
 import type { Question } from "@/lib/questions";
+import type { ComponentTemplate } from "@/lib/solution-catalog";
 
 export type RegionId = "gcc" | "india" | "north-america" | "australia";
 
@@ -142,6 +143,55 @@ export const REGION_PACKS: Record<RegionId, Question[]> = {
 
 export function localisationQuestions(countries: string[]): Question[] {
   return regionsFor(countries).flatMap((region) => REGION_PACKS[region]);
+}
+
+const c = (
+  key: string,
+  category: string,
+  label: string,
+  priority: ComponentTemplate["priority"],
+  effortDays: number,
+  outcome: string,
+  risk: ComponentTemplate["risk"],
+  phase?: number
+): ComponentTemplate => ({ key, category, label, priority, effortDays, outcome, risk, phase });
+
+// The build behind the questions.
+//
+// Asking whether VAT filing is in scope and then pricing nothing for it is how
+// statutory work ends up absorbed into a fixed price. These are the components
+// that answer costs, so a Gulf deal and an Australian deal produce different
+// estimates rather than the same one with different notes.
+export const REGION_COMPONENT_TEMPLATES: Record<RegionId, ComponentTemplate[]> = {
+  gcc: [
+    c("loc-gcc-vat", "Finance", "VAT configuration and return filing", "Required", 14, "VAT calculated and filed to the regime", "Medium", 1),
+    c("loc-gcc-einvoicing", "Compliance", "E-invoicing clearance integration", "Recommended", 16, "Invoices cleared with the tax authority", "High"),
+    c("loc-gcc-wps", "HCM", "WPS payroll file generation", "Recommended", 10, "Wages filed through the protection system", "Medium"),
+    c("loc-gcc-gratuity", "HCM", "End-of-service gratuity configuration", "Recommended", 8, "Gratuity accrued to statute", "Low"),
+    c("loc-gcc-arabic", "Localisation", "Arabic language and document layouts", "Optional", 12, "Documents issued in Arabic", "Medium"),
+    c("loc-gcc-nationalisation", "HCM", "Nationalisation quota reporting", "Optional", 6, "Quota position reportable", "Low"),
+  ],
+  india: [
+    c("loc-in-gst", "Finance", "GST configuration and returns", "Required", 16, "GST calculated and filed by state", "Medium", 1),
+    c("loc-in-einvoice", "Compliance", "E-invoicing and e-way bill integration", "Recommended", 14, "Invoices and movements cleared", "High"),
+    c("loc-in-tds", "Finance", "TDS deduction and certificates", "Recommended", 10, "Tax deducted and certified at source", "Medium"),
+    c("loc-in-payroll", "HCM", "Statutory payroll (PF, ESI, PT)", "Recommended", 12, "Statutory deductions calculated and filed", "Medium"),
+  ],
+  "north-america": [
+    c("loc-na-tax", "Finance", "Sales and use tax determination", "Required", 14, "Tax determined by jurisdiction", "Medium", 1),
+    c("loc-na-vendor-reporting", "Finance", "Vendor tax reporting (1099 / T4A)", "Optional", 8, "Vendor reporting filed", "Low"),
+    c("loc-na-payroll", "HCM", "Multi-state payroll configuration", "Optional", 12, "Payroll correct across states", "Medium"),
+    c("loc-na-sox", "Compliance", "SOX control documentation", "Optional", 12, "Controls evidenced for audit", "Medium"),
+  ],
+  australia: [
+    c("loc-au-gst", "Finance", "GST and BAS reporting", "Required", 10, "BAS prepared from the ledger", "Low", 1),
+    c("loc-au-stp", "HCM", "Single Touch Payroll reporting", "Required", 10, "Payroll events reported to the ATO", "Medium"),
+    c("loc-au-super", "HCM", "Superannuation processing", "Recommended", 8, "Super calculated and remitted", "Low"),
+  ],
+};
+
+export function localisationTemplates(countries: string[]): ComponentTemplate[] {
+  return regionsFor(countries).flatMap((region) => REGION_COMPONENT_TEMPLATES[region]);
 }
 
 // Flat list for the question index in lib/questions.ts, so an answer to a

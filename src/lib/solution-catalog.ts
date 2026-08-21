@@ -3,6 +3,7 @@
 // reprioritise, re-phase and add custom components afterward (doc 6.3).
 import type { ComponentSource, EngagementType, Priority, SolutionComponent } from "@/types/deal-twin";
 import { newId } from "@/lib/id";
+import { localisationTemplates } from "@/lib/localisation";
 
 export type ComponentTemplate = {
   // Stable identifier for the template. Component ids are minted fresh on every
@@ -142,6 +143,15 @@ export const APEX_EXTENSION_TEMPLATES: ComponentTemplate[] = [
 // Engagements that have a Fusion or EBS estate worth extending. Offering APEX
 // options on a staff augmentation or database engagement would be noise on a
 // screen whose whole problem was having too much on it.
+// Engagements that configure the application, and therefore carry statutory
+// scope. A testing cycle or a database migration in the UAE does not build VAT
+// returns, so offering those components there would be noise.
+const CONFIGURES_STATUTORY_SCOPE: ReadonlySet<EngagementType> = new Set<EngagementType>([
+  "Fusion implementation",
+  "EBS modernisation",
+  "HCM/payroll",
+]);
+
 const APEX_EXTENSIBLE: ReadonlySet<EngagementType> = new Set<EngagementType>([
   "Fusion implementation",
   "EBS modernisation",
@@ -156,11 +166,15 @@ const APEX_EXTENSIBLE: ReadonlySet<EngagementType> = new Set<EngagementType>([
 // the UI can show what an industry would contribute before committing to it.
 export function templatesFor(
   engagementType: EngagementType,
-  industryAddOns: ComponentTemplate[] = []
+  industryAddOns: ComponentTemplate[] = [],
+  countries: string[] = []
 ): Array<ComponentTemplate & { source: ComponentSource }> {
   const layered: Array<ComponentTemplate & { source: ComponentSource }> = [
     ...ENGAGEMENT_TEMPLATES[engagementType].map((t) => ({ ...t, source: "engagement" as const })),
     ...industryAddOns.map((t) => ({ ...t, source: "industry" as const })),
+    ...(CONFIGURES_STATUTORY_SCOPE.has(engagementType)
+      ? localisationTemplates(countries).map((t) => ({ ...t, source: "localisation" as const }))
+      : []),
     ...(APEX_EXTENSIBLE.has(engagementType)
       ? APEX_EXTENSION_TEMPLATES.map((t) => ({ ...t, source: "apex" as const }))
       : []),
@@ -175,9 +189,10 @@ export function templatesFor(
 
 export function buildComponentsForEngagement(
   engagementType: EngagementType,
-  industryAddOns: ComponentTemplate[] = []
+  industryAddOns: ComponentTemplate[] = [],
+  countries: string[] = []
 ): SolutionComponent[] {
-  return templatesFor(engagementType, industryAddOns).map((t) => ({
+  return templatesFor(engagementType, industryAddOns, countries).map((t) => ({
     id: newId(),
     templateKey: t.key,
     source: t.source,

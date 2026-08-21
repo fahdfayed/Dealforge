@@ -21,7 +21,10 @@ export async function loadCatalogAction(dealId: string, expectedRevision: number
       if (!engagementType) return twin;
 
       const addOns = getPackSync(twin.dealDNA.industryId)?.componentAddOns ?? [];
-      const candidates = buildComponentsForEngagement(engagementType, addOns);
+      // Countries drive the statutory components — VAT, WPS, GST, STP. Passing
+      // them is what makes the localisation questions lead to priced work
+      // rather than a note nobody costs.
+      const candidates = buildComponentsForEngagement(engagementType, addOns, twin.dealDNA.countries);
 
       const existingKeys = new Set(
         twin.solution.components.map((c) => c.templateKey).filter(Boolean) as string[]

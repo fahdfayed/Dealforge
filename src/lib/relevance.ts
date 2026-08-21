@@ -10,7 +10,7 @@
 // price a solution that has no components), and what the client's industry pack
 // says applies. Both answers come from here so the navigation, the stage
 // headers and any "what's next" prompt cannot disagree with each other.
-import type { DealTwin } from "@/types/deal-twin";
+import type { DealTwin, EngagementType } from "@/types/deal-twin";
 import { getPackSync } from "@/lib/industry-packs";
 import { evaluateSubmissionCheck } from "@/lib/submission-check";
 
@@ -101,7 +101,10 @@ const STAGE_RULES: StageRule[] = [
     id: "price",
     label: "Price",
     segment: "estimate",
-    requires: (t) => t.solution.components.length > 0,
+    // Requiring components would leave Price permanently blocked for an
+    // engagement whose Shape stage is switched off, so the prerequisite only
+    // applies where there is a Shape stage to satisfy it.
+    requires: (t) => stageIsOff(t, "shape") || t.solution.components.length > 0,
     blockedReason: "Add solution components before pricing",
     substeps: [
       { id: "estimate", label: "Estimate", segment: "estimate", requires: null, blockedReason: "" },
@@ -143,14 +146,33 @@ const LENS_RULES: Array<{ id: LensId; label: string; segment: string }> = [
   { id: "alliance", label: "Oracle coordination", segment: "oracle" },
 ];
 
+// Some engagements do not have the shape the flow assumes.
+//
+// Staff augmentation is people billed per month, not a component build: there
+// is no solution to shape, and forcing one produces a component list nobody
+// means and an effort total nobody believes. Opting out of Shape says that
+// plainly instead of showing a stage that cannot be completed honestly.
+const ENGAGEMENT_MODULES: Partial<Record<EngagementType, { disabledStages?: StageId[] }>> = {
+  "Staff augmentation / AMS": { disabledStages: ["shape"] },
+};
+
 // A pack opts parts out; it never opts them in. A half-authored pack therefore
-// hides nothing, which is the safe direction to fail in.
+// hides nothing, which is the safe direction to fail in. Engagement-level
+// opt-outs merge with the industry's — either can remove a stage, neither can
+// restore one the other removed.
 function disabled(twin: DealTwin): { stages: Set<string>; lenses: Set<string> } {
   const modules = getPackSync(twin.dealDNA.industryId)?.modules;
+  const byEngagement = twin.dealDNA.engagementType
+    ? ENGAGEMENT_MODULES[twin.dealDNA.engagementType]
+    : undefined;
   return {
-    stages: new Set(modules?.disabledStages ?? []),
+    stages: new Set([...(modules?.disabledStages ?? []), ...(byEngagement?.disabledStages ?? [])]),
     lenses: new Set(modules?.disabledLenses ?? []),
   };
+}
+
+function stageIsOff(twin: DealTwin, id: StageId): boolean {
+  return disabled(twin).stages.has(id);
 }
 
 export function stagesFor(twin: DealTwin): Stage[] {
