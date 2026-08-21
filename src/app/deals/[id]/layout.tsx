@@ -7,9 +7,14 @@ import { gatesFor, lensesFor, stagesFor } from "@/lib/relevance";
 
 export default async function DealLayout({
   children,
+  lens,
   params,
 }: {
   children: React.ReactNode;
+  // The @lens parallel slot. Holds a drawer when a lens was opened by clicking
+  // one, and nothing on a deep link or refresh, where the lens renders as its
+  // own full page instead.
+  lens: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
@@ -59,6 +64,7 @@ export default async function DealLayout({
       <DealStageNav dealId={deal.id} stages={stages} lenses={lenses} gates={gates} />
 
       {children}
+      {lens}
     </div>
   );
 }
