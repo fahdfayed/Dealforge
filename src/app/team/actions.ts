@@ -1,5 +1,6 @@
 "use server";
 
+import type { UserRole } from "@/types/team";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/identity";
 import { addTeamMember, updateTeamMember, getTeamMember } from "@/lib/team-repo";
@@ -19,7 +20,7 @@ export async function addTeamMemberAction(formData: FormData) {
 
 export async function updateTeamMemberAction(memberId: string, role: string) {
   const user = await requireUser();
-  await updateTeamMember(memberId, { role: role as any });
+  await updateTeamMember(memberId, { role: role as UserRole });
   revalidatePath("/team");
 }
 

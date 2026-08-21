@@ -25,7 +25,10 @@ const accountByName = new Map(existing.map((a) => [a.name.toLowerCase().trim(), 
 const rows = await db.select().from(dealStates).where(isNull(dealStates.accountId));
 console.log(`Deals without an account: ${rows.length}`);
 
-let created = 0, attached = 0, industryMapped = 0, unmatched: string[] = [];
+let created = 0,
+  attached = 0,
+  industryMapped = 0;
+const unmatched: string[] = [];
 
 for (const row of rows) {
   let twin: DealTwin;

@@ -1,0 +1,36 @@
+name: Migrate production database
+
+# Applied as a deliberate release step, not from the build.
+#
+# Putting migrations in the platform's build command looks convenient and is a
+# trap: preview builds run the same command, so a branch deploy would migrate
+# whichever database it was pointed at, and two builds finishing together would
+# race to apply the same file. This runs once, on the release branch, and can be
+# triggered by hand when a migration needs to go out ahead of a deploy.
+on:
+  push:
+    branches: [main]
+    paths: ["drizzle/**"]
+  workflow_dispatch:
+
+# Two runs of this workflow must never overlap.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Apply migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}

@@ -1,40 +1,68 @@
-// Local development driver: better-sqlite3 against a file database.
+// Database client.
 //
-// The schema in ./schema.ts is written with drizzle-orm/sqlite-core, the
-// same builder consumed by drizzle-orm/d1. In a Cloudflare Pages/Workers
-// deployment, replace this file's export with:
+// libSQL speaks both a local file and a hosted Turso database, so development
+// and production run the same driver and the same SQL rather than one being a
+// guess about the other. That matters here because the candidate search is
+// built on FTS5: a Postgres production would have needed that rewritten, and
+// the rewrite would only ever be exercised in production.
 //
-//   import { drizzle } from "drizzle-orm/d1";
-//   export const db = drizzle(env.DB, { schema });
-//
-// where `env.DB` is the D1 binding declared in wrangler.toml. No such
-// binding exists in this container, so that swap is left as a deployment
-// step rather than faked here.
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+// Configuration is a single URL:
+//   file:./data/dealforge.db   local development
+//   libsql://<db>.turso.io     hosted, with DATABASE_AUTH_TOKEN
+import { createClient, type Client } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 import { mkdirSync } from "fs";
 import { dirname } from "path";
 import { runMigrations } from "./migrations";
 
-const globalForDb = globalThis as unknown as { sqlite: Database.Database | undefined };
+function resolveUrl(): string {
+  const url = process.env.DATABASE_URL;
+  if (url) return url;
 
-const dbPath = process.env.DATABASE_PATH ?? "./data/dealforge.db";
-mkdirSync(dirname(dbPath), { recursive: true });
-const sqlite = globalForDb.sqlite ?? new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-
-// Applied on module load so a dev server always starts against a current
-// schema. Failures are logged rather than thrown: the app should still boot so
-// the error is visible in the UI rather than as a blank page.
-try {
-  runMigrations(sqlite);
-} catch (err) {
-  console.error("[migrations] failed:", err);
+  // DATABASE_PATH predates this and is still what the local .env uses.
+  const path = process.env.DATABASE_PATH ?? "./data/dealforge.db";
+  return `file:${path}`;
 }
+
+const url = resolveUrl();
+
+// A local file needs its directory to exist; a remote URL has no directory.
+if (url.startsWith("file:")) {
+  const path = url.slice("file:".length);
+  if (path && path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+}
+
+const globalForDb = globalThis as unknown as {
+  libsql: Client | undefined;
+  migrated: Promise<void> | undefined;
+};
+
+const client =
+  globalForDb.libsql ??
+  createClient({
+    url,
+    authToken: process.env.DATABASE_AUTH_TOKEN,
+  });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForDb.sqlite = sqlite;
+  globalForDb.libsql = client;
 }
 
-export const db = drizzle(sqlite, { schema });
+// Migrations no longer run on module load in production.
+//
+// They used to, which races when a platform boots several instances at once:
+// each would try to apply the same migration against the same database. In
+// production they are a deploy step (`npm run db:migrate`) that runs once,
+// before the new version starts serving. Locally they still run on boot, where
+// there is one process and the convenience is worth more than the risk.
+if (process.env.NODE_ENV !== "production" && !globalForDb.migrated) {
+  globalForDb.migrated = runMigrations(client).catch((err) => {
+    // Logged rather than thrown so the app still boots and the error is visible
+    // in the UI rather than as a blank page.
+    console.error("[migrations] failed:", err);
+  });
+}
+
+export const db = drizzle(client, { schema });
+export const libsql = client;

@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { teamMembers, dealAccess, responsibilities, sodRules, sodViolations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import type { TeamMember, DealAccess, Responsibility, DealResponsibility, SODViolation } from "@/types/team";
+import type { DealAccess, DealAccessLevel, DealResponsibility, Responsibility, SODSeverity, SODViolation, TeamMember, UserRole, UserStatus } from "@/types/team";
 
 // Team Members
 export async function addTeamMember(email: string, name: string, role: string = "viewer"): Promise<TeamMember> {
@@ -18,7 +18,7 @@ export async function addTeamMember(email: string, name: string, role: string = 
     updatedAt: now,
   });
 
-  return { id, email, name, role: role as any, status: "active", createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString() };
+  return { id, email, name, role: role as UserRole, status: "active", createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString() };
 }
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
@@ -27,8 +27,8 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
     id: m.id,
     email: m.email,
     name: m.name,
-    role: m.role as any,
-    status: m.status as any,
+    role: m.role as UserRole,
+    status: m.status as UserStatus,
     createdAt: new Date(m.createdAt).toISOString(),
     updatedAt: new Date(m.updatedAt).toISOString(),
   }));
@@ -42,15 +42,16 @@ export async function getTeamMember(id: string): Promise<TeamMember | null> {
     id: m.id,
     email: m.email,
     name: m.name,
-    role: m.role as any,
-    status: m.status as any,
+    role: m.role as UserRole,
+    status: m.status as UserStatus,
     createdAt: new Date(m.createdAt).toISOString(),
     updatedAt: new Date(m.updatedAt).toISOString(),
   };
 }
 
 export async function updateTeamMember(id: string, updates: Partial<TeamMember>): Promise<void> {
-  const updateObj: any = {};
+  // Only the columns this function is allowed to change.
+  const updateObj: Partial<{ name: string; role: string; status: string; updatedAt: number }> = {};
   if (updates.role) updateObj.role = updates.role;
   if (updates.status) updateObj.status = updates.status;
   if (updates.name) updateObj.name = updates.name;
@@ -85,15 +86,15 @@ export async function getDealAccess(dealId: string): Promise<DealAccess[]> {
       id: a.id,
       dealId: a.dealId,
       userId: a.userId,
-      accessLevel: a.accessLevel as any,
+      accessLevel: a.accessLevel as DealAccessLevel,
       sharedAt: new Date(a.sharedAt).toISOString(),
       sharedBy: a.sharedBy,
       user: member ? {
         id: member.id,
         email: member.email,
         name: member.name,
-        role: member.role as any,
-        status: member.status as any,
+        role: member.role as UserRole,
+        status: member.status as UserStatus,
         createdAt: new Date(member.createdAt).toISOString(),
         updatedAt: new Date(member.updatedAt).toISOString(),
       } : undefined,
@@ -111,7 +112,7 @@ export async function getUserAccessToDeal(dealId: string, userId: string): Promi
     id: a.id,
     dealId: a.dealId,
     userId: a.userId,
-    accessLevel: a.accessLevel as any,
+    accessLevel: a.accessLevel as DealAccessLevel,
     sharedAt: new Date(a.sharedAt).toISOString(),
     sharedBy: a.sharedBy,
   };
@@ -155,16 +156,16 @@ export async function getDealResponsibilities(dealId: string): Promise<Responsib
       id: r.id,
       dealId: r.dealId,
       userId: r.userId,
-      role: r.role as any,
+      role: r.role as DealResponsibility,
       assignedAt: new Date(r.assignedAt).toISOString(),
       assignedBy: r.assignedBy,
-      status: r.status as any,
+      status: r.status as Responsibility["status"],
       user: member ? {
         id: member.id,
         email: member.email,
         name: member.name,
-        role: member.role as any,
-        status: member.status as any,
+        role: member.role as UserRole,
+        status: member.status as UserStatus,
         createdAt: new Date(member.createdAt).toISOString(),
         updatedAt: new Date(member.updatedAt).toISOString(),
       } : undefined,
@@ -178,10 +179,10 @@ export async function getUserResponsibilities(userId: string): Promise<Responsib
     id: r.id,
     dealId: r.dealId,
     userId: r.userId,
-    role: r.role as any,
+    role: r.role as DealResponsibility,
     assignedAt: new Date(r.assignedAt).toISOString(),
     assignedBy: r.assignedBy,
-    status: r.status as any,
+    status: r.status as Responsibility["status"],
   }));
 }
 
@@ -215,7 +216,7 @@ export async function getDealSODViolations(dealId: string): Promise<SODViolation
     id: v.id,
     dealId: v.dealId,
     ruleId: v.ruleId,
-    severity: v.severity as any,
+    severity: v.severity as SODSeverity,
     details: v.details,
     detectedAt: new Date(v.detectedAt).toISOString(),
     resolvedAt: v.resolvedAt ? new Date(v.resolvedAt).toISOString() : undefined,

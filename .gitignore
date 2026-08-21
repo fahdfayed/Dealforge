@@ -51,3 +51,6 @@ next-env.d.ts
 
 # local file storage (source uploads, proof files) — dev stand-in for R2
 /.storage/
+
+# CI throwaway database
+ci-check.db
