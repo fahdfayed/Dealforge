@@ -12,27 +12,44 @@
 // headers and any "what's next" prompt cannot disagree with each other.
 import type { DealTwin } from "@/types/deal-twin";
 import { getPackSync } from "@/lib/industry-packs";
+import { evaluateSubmissionCheck } from "@/lib/submission-check";
 
 export type StageId = "home" | "discover" | "shape" | "price" | "propose" | "handover";
 export type LensId =
   | "evidence"
+  | "health"
   | "commitments"
-  | "docs"
   | "actions"
   | "comments"
   | "history"
   | "team"
   | "alliance";
 
+// A screen that belongs inside a stage rather than beside it. Solution and
+// Build offer both edit twin.solution, and Estimate and Negotiate both work on
+// the commercial position, so presenting them as peers of Discover and Propose
+// overstated how many decisions the flow actually has.
+export type Substep = {
+  id: string;
+  label: string;
+  segment: string;
+  available: boolean;
+  blockedReason: string | null;
+};
+
 export type Stage = {
   id: StageId;
   label: string;
-  // Route segment under /deals/[id]. Empty string is the deal root.
+  // Route segment under /deals/[id]. Empty string is the deal root. Where a
+  // stage has substeps this is the first of them, so clicking the stage lands
+  // on its opening screen.
   segment: string;
   available: boolean;
   // Why it is not available yet, shown rather than hiding the reason from the
   // user. Null when available.
   blockedReason: string | null;
+  // Empty for stages that are a single screen.
+  substeps: Substep[];
 };
 
 export type Lens = {
@@ -42,6 +59,14 @@ export type Lens = {
   available: boolean;
 };
 
+type SubstepRule = {
+  id: string;
+  label: string;
+  segment: string;
+  requires: ((twin: DealTwin) => boolean) | null;
+  blockedReason: string;
+};
+
 type StageRule = {
   id: StageId;
   label: string;
@@ -49,6 +74,7 @@ type StageRule = {
   // Null means always available.
   requires: ((twin: DealTwin) => boolean) | null;
   blockedReason: string;
+  substeps?: SubstepRule[];
 };
 
 const STAGE_RULES: StageRule[] = [
@@ -60,6 +86,16 @@ const STAGE_RULES: StageRule[] = [
     segment: "solution",
     requires: (t) => Boolean(t.dealDNA.engagementType),
     blockedReason: "Set an engagement type on the deal first",
+    substeps: [
+      { id: "solution", label: "Solution", segment: "solution", requires: null, blockedReason: "" },
+      {
+        id: "build-offer",
+        label: "Build offer",
+        segment: "build-offer",
+        requires: (t) => Boolean(t.dealDNA.engagementType),
+        blockedReason: "Set an engagement type on the deal first",
+      },
+    ],
   },
   {
     id: "price",
@@ -67,6 +103,16 @@ const STAGE_RULES: StageRule[] = [
     segment: "estimate",
     requires: (t) => t.solution.components.length > 0,
     blockedReason: "Add solution components before pricing",
+    substeps: [
+      { id: "estimate", label: "Estimate", segment: "estimate", requires: null, blockedReason: "" },
+      {
+        id: "negotiate",
+        label: "Negotiate",
+        segment: "negotiate",
+        requires: (t) => Boolean(t.savedCommercialScenarioId),
+        blockedReason: "Save a commercial scenario before negotiating",
+      },
+    ],
   },
   {
     id: "propose",
@@ -86,8 +132,10 @@ const STAGE_RULES: StageRule[] = [
 
 const LENS_RULES: Array<{ id: LensId; label: string; segment: string }> = [
   { id: "evidence", label: "Evidence & sources", segment: "sources" },
+  // Health is a read-only view of scoring output, so it applies at every stage
+  // rather than being a step in the flow.
+  { id: "health", label: "Health", segment: "health" },
   { id: "commitments", label: "Commitments", segment: "commitments" },
-  { id: "docs", label: "Matched docs", segment: "submission-check" },
   { id: "actions", label: "Actions", segment: "actions" },
   { id: "comments", label: "Comments", segment: "comments" },
   { id: "history", label: "History", segment: "history" },
@@ -115,6 +163,16 @@ export function stagesFor(twin: DealTwin): Stage[] {
       segment: rule.segment,
       available,
       blockedReason: available ? null : rule.blockedReason,
+      substeps: (rule.substeps ?? []).map((sub) => {
+        const subAvailable = sub.requires ? sub.requires(twin) : true;
+        return {
+          id: sub.id,
+          label: sub.label,
+          segment: sub.segment,
+          available: subAvailable,
+          blockedReason: subAvailable ? null : sub.blockedReason,
+        };
+      }),
     };
   });
 }
@@ -133,6 +191,35 @@ export function currentStage(twin: DealTwin): Stage {
   const stages = stagesFor(twin);
   const earned = stages.filter((s) => s.available);
   return earned[earned.length - 1] ?? stages[0];
+}
+
+// A blocking check surfaced on the stage it blocks.
+export type Gate = {
+  id: string;
+  stage: StageId;
+  label: string;
+  blocking: Array<{ id: string; label: string }>;
+  // Where the full detail lives. The screen stays routable — the change is that
+  // you are told about it on the stage it affects, instead of having to know to
+  // go and look.
+  detailSegment: string;
+};
+
+// Submission readiness used to be a lens labelled "Matched docs", which both
+// mislabelled it and buried it: a proposal could be assembled without anyone
+// seeing that it was blocked until they opened a screen they had no reason to
+// open. It is a gate on Propose, so it is reported there.
+export function gatesFor(twin: DealTwin): Gate[] {
+  const { blockingIssues } = evaluateSubmissionCheck(twin);
+  return [
+    {
+      id: "submission",
+      stage: GATE_STAGE.submission,
+      label: "Submission check",
+      blocking: blockingIssues.map((i) => ({ id: i.id, label: i.label })),
+      detailSegment: "submission-check",
+    },
+  ];
 }
 
 // Gates belong on the stage they gate rather than on a screen of their own.
