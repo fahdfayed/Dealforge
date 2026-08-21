@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import { db } from "@/db/client";
 import { dealStates, radarIntakes } from "@/db/schema";
-import { createEmptyDealTwin, type Deal, type DealTwin } from "@/types/deal-twin";
+import { createEmptyDealTwin, normaliseEngagementType, type Deal, type DealTwin } from "@/types/deal-twin";
 import { deleteObject } from "@/lib/storage";
 import { ensurePacksLoaded } from "@/lib/industry-pack-repo";
 import { getIndustrySync } from "@/lib/industry-packs";
@@ -17,12 +17,22 @@ export class ConflictError extends Error {
 }
 
 function rowToDeal(row: typeof dealStates.$inferSelect): Deal {
+  const twin = JSON.parse(row.payload) as DealTwin;
   return {
     id: row.id,
     revision: row.revision,
     createdAt: new Date(row.createdAt).toISOString(),
     updatedAt: new Date(row.updatedAt).toISOString(),
-    twin: JSON.parse(row.payload) as DealTwin,
+    // Engagement types have been renamed once already. Reading through the
+    // normaliser means a deal saved under an old name still resolves its
+    // question pack instead of throwing on an undefined Record lookup.
+    twin: {
+      ...twin,
+      dealDNA: {
+        ...twin.dealDNA,
+        engagementType: normaliseEngagementType(twin.dealDNA?.engagementType ?? null),
+      },
+    },
   };
 }
 
@@ -118,7 +128,7 @@ export async function duplicateDeal(id: string): Promise<Deal> {
   if (!source) throw new Error(`Deal ${id} not found.`);
 
   const now = Date.now();
-  const newId = crypto.randomUUID();
+  const copyId = newId();
   const twin: DealTwin = {
     ...source.twin,
     identity: { ...source.twin.identity, engagementTitle: `${source.twin.identity.engagementTitle} (copy)`.trim() },
@@ -128,16 +138,23 @@ export async function duplicateDeal(id: string): Promise<Deal> {
     clientRoom: { published: false, publishedAt: null, baselineRevision: null, meetingRequests: [] },
   };
 
+  // The source row's account and industry carry over. Without these the copy
+  // detaches from its client and loses its industry pack, so the duplicate
+  // would quietly ask a different set of questions than the deal it came from.
+  const sourceRow = await db.select().from(dealStates).where(eq(dealStates.id, id)).limit(1);
+
   await db.insert(dealStates).values({
-    id: newId,
+    id: copyId,
     company: twin.identity.company,
+    accountId: sourceRow[0]?.accountId ?? null,
+    industryId: twin.dealDNA.industryId ?? sourceRow[0]?.industryId ?? null,
     payload: JSON.stringify(twin),
     revision: 1,
     createdAt: now,
     updatedAt: now,
   });
 
-  return { id: newId, revision: 1, createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), twin };
+  return { id: copyId, revision: 1, createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), twin };
 }
 
 export async function deleteDeal(id: string): Promise<void> {

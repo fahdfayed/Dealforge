@@ -68,10 +68,52 @@ const ENGAGEMENT_TEMPLATES: Record<EngagementType, ComponentTemplate[]> = {
     { key: "workload-migration-and-cutover", category: "Migration", label: "Workload migration and cutover", priority: "Required", effortDays: 25, outcome: "Migrated production estate", risk: "High" },
     { key: "post-migration-performance-tuning", category: "Optimisation", label: "Post-migration performance tuning", priority: "Optional", effortDays: 8, outcome: "Right-sized cost and performance", risk: "Low" },
   ],
-  "APEX/ECC": [
+  "APEX & VBCS": [
     { key: "custom-object-modernisation", category: "APEX", label: "Custom object modernisation", priority: "Required", effortDays: 22, outcome: "Supportable custom estate", risk: "Medium" },
     { key: "retirement-of-redundant-objects", category: "Rationalisation", label: "Retirement of redundant objects", priority: "Recommended", effortDays: 8, outcome: "Reduced technical debt", risk: "Low" },
     { key: "target-platform-build-out", category: "Platform", label: "Target platform build-out", priority: "Optional", effortDays: 12, outcome: "Modern hosting foundation", risk: "Medium" },
+  ],
+  ECC: [
+    { key: "ecc-framework-deployment", category: "Platform", label: "ECC framework deployment and configuration", priority: "Required", effortDays: 15, outcome: "Command centers available on EBS", risk: "Medium", phase: 1 },
+    { key: "ecc-dashboard-configuration", category: "Analytics", label: "Command center dashboard configuration", priority: "Required", effortDays: 12, outcome: "Operational visibility inside EBS", risk: "Low" },
+    { key: "ecc-data-indexing", category: "Data", label: "Data set indexing and refresh scheduling", priority: "Required", effortDays: 10, outcome: "Dashboards backed by current data", risk: "Medium" },
+    { key: "ecc-custom-extensions", category: "Analytics", label: "Custom command center extensions", priority: "Optional", effortDays: 14, outcome: "Sector-specific operational views", risk: "Medium", phase: 2 },
+  ],
+  Integration: [
+    { key: "integration-architecture-and-design", category: "Integration", label: "Integration architecture and interface design", priority: "Required", effortDays: 18, outcome: "Agreed interface contracts before build", risk: "Medium", phase: 1 },
+    { key: "oic-build-and-configuration", category: "Integration", label: "OIC integration build and configuration", priority: "Required", effortDays: 30, outcome: "Connected application estate", risk: "High" },
+    { key: "integration-error-handling", category: "Integration", label: "Error handling, retry and monitoring", priority: "Required", effortDays: 12, outcome: "Failures visible and recoverable", risk: "Medium" },
+    { key: "soa-bpel-retirement", category: "Migration", label: "SOA / BPEL retirement and migration", priority: "Optional", effortDays: 20, outcome: "Legacy middleware decommissioned", risk: "High", phase: 2 },
+  ],
+  "BI & Analytics": [
+    { key: "reporting-requirements-and-kpi-design", category: "Analytics", label: "Reporting requirements and KPI definition", priority: "Required", effortDays: 14, outcome: "Agreed measures before any build", risk: "Low", phase: 1 },
+    { key: "data-model-and-warehouse-build", category: "Data", label: "Data model and warehouse build", priority: "Required", effortDays: 28, outcome: "Governed reporting foundation", risk: "High" },
+    { key: "etl-and-data-pipeline-build", category: "Data", label: "ETL and data pipeline build", priority: "Required", effortDays: 22, outcome: "Automated, repeatable data loads", risk: "High" },
+    { key: "dashboard-and-report-build", category: "Analytics", label: "Dashboard and report build", priority: "Required", effortDays: 20, outcome: "Decision-ready reporting", risk: "Medium" },
+    { key: "obiee-to-oac-migration", category: "Migration", label: "OBIEE to OAC migration", priority: "Optional", effortDays: 18, outcome: "Reporting on a supported platform", risk: "Medium", phase: 2 },
+  ],
+  "Database & Infrastructure": [
+    { key: "environment-assessment-and-sizing", category: "Infrastructure", label: "Environment assessment and sizing", priority: "Required", effortDays: 10, outcome: "Right-sized target platform", risk: "Low", phase: 1 },
+    { key: "database-provisioning-and-configuration", category: "Infrastructure", label: "Database provisioning and configuration", priority: "Required", effortDays: 15, outcome: "Running target databases", risk: "Medium" },
+    { key: "backup-and-disaster-recovery-setup", category: "Resilience", label: "Backup and disaster recovery setup", priority: "Required", effortDays: 14, outcome: "Recoverable within agreed RTO and RPO", risk: "High" },
+    { key: "patching-and-maintenance-runbook", category: "Operations", label: "Patching and maintenance runbook", priority: "Recommended", effortDays: 8, outcome: "Repeatable maintenance without heroics", risk: "Low" },
+    { key: "database-performance-tuning", category: "Optimisation", label: "Performance tuning and monitoring", priority: "Optional", effortDays: 10, outcome: "Predictable performance under load", risk: "Low", phase: 2 },
+  ],
+  "Testing & QA": [
+    { key: "test-strategy-and-scenario-design", category: "Testing", label: "Test strategy and scenario design", priority: "Required", effortDays: 12, outcome: "Agreed coverage before execution", risk: "Low", phase: 1 },
+    { key: "automation-framework-setup", category: "Testing", label: "Automation framework setup", priority: "Required", effortDays: 18, outcome: "Repeatable regression runs", risk: "Medium" },
+    { key: "regression-suite-build", category: "Testing", label: "Regression suite build", priority: "Required", effortDays: 22, outcome: "Update-ready regression pack", risk: "Medium" },
+    { key: "performance-and-load-testing", category: "Testing", label: "Performance and load testing", priority: "Optional", effortDays: 12, outcome: "Validated behaviour at peak load", risk: "Medium", phase: 2 },
+    { key: "risk-analysis-and-defect-reporting", category: "Quality", label: "Risk analysis and defect reporting", priority: "Recommended", effortDays: 8, outcome: "Visible quality position before go-live", risk: "Low" },
+  ],
+  // Deliberately short. This is a people engagement, not a build: effort is the
+  // resources themselves, priced per month, not a component breakdown. Padding
+  // it with implementation-shaped components would produce a misleading
+  // estimate, so only genuine setup work is listed.
+  "Staff augmentation / AMS": [
+    { key: "resource-onboarding-and-access", category: "Onboarding", label: "Resource onboarding and system access", priority: "Required", effortDays: 5, outcome: "Team productive from week one", risk: "Low", phase: 1 },
+    { key: "knowledge-transfer-and-shadowing", category: "Enablement", label: "Knowledge transfer and shadowing", priority: "Required", effortDays: 10, outcome: "Context held by the team, not one individual", risk: "Medium" },
+    { key: "service-governance-and-reporting", category: "Governance", label: "Service governance and reporting cadence", priority: "Required", effortDays: 6, outcome: "Delivery visible against agreed SLA", risk: "Low" },
   ],
 };
 

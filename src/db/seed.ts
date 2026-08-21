@@ -58,7 +58,7 @@ async function main() {
       id: crypto.randomUUID(),
       type: "Architecture diagram",
       title: "APEX Modernisation Reference Architecture",
-      tags: JSON.stringify(["APEX/ECC", "OCI"]),
+      tags: JSON.stringify(["APEX & VBCS", "OCI"]),
       access: "Public",
       summary: "Standard reference architecture for migrating EBS custom forms to APEX on OCI.",
       whatItProves: "A validated, repeatable pattern for custom-form modernisation.",

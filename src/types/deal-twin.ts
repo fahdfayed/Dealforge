@@ -26,6 +26,9 @@ export const AUTHORITIES = [
 ] as const;
 export type Authority = (typeof AUTHORITIES)[number];
 
+// The service lines we sell. Oracle is the core, so this is a closed catalogue
+// in code rather than authored data — unlike client industry, which is
+// open-ended (see lib/industry-packs.ts).
 export const ENGAGEMENT_TYPES = [
   "Fusion implementation",
   "EBS modernisation",
@@ -34,9 +37,33 @@ export const ENGAGEMENT_TYPES = [
   "HCM/payroll",
   "Security/SOD",
   "OCI",
-  "APEX/ECC",
+  "APEX & VBCS",
+  "ECC",
+  "Integration",
+  "BI & Analytics",
+  "Database & Infrastructure",
+  "Testing & QA",
+  "Staff augmentation / AMS",
 ] as const;
 export type EngagementType = (typeof ENGAGEMENT_TYPES)[number];
+
+// Engagement types that have been renamed or split. A stored deal keeps
+// whatever string was written when it was saved, and an unrecognised value
+// reaches Record<EngagementType, …> lookups as undefined, which throws when
+// spread. Mapping on read keeps old deals loadable.
+//
+// "APEX/ECC" conflated a low-code platform with Enterprise Command Center;
+// deals carrying it are read as the APEX side, which is the far more common
+// sale of the two.
+const LEGACY_ENGAGEMENT_TYPES: Record<string, EngagementType> = {
+  "APEX/ECC": "APEX & VBCS",
+};
+
+export function normaliseEngagementType(value: string | null): EngagementType | null {
+  if (!value) return null;
+  if ((ENGAGEMENT_TYPES as readonly string[]).includes(value)) return value as EngagementType;
+  return LEGACY_ENGAGEMENT_TYPES[value] ?? null;
+}
 
 export const COMMERCIAL_MODELS = [
   "Fixed price",
