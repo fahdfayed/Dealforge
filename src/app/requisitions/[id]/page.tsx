@@ -5,6 +5,11 @@ import {
   requisitionHistory,
   hasLoggedSearch,
 } from "@/lib/requisition-repo";
+import { listSubmissionsForRequisition, feedbackCounts } from "@/lib/submission-repo";
+import { searchCandidates } from "@/lib/candidate-repo";
+import { daysAwaitingClient, isChaseOverdue, canSubmit } from "@/lib/submissions";
+import { createSubmissionAction } from "@/app/submissions/actions";
+import { RATE_UNITS } from "@/lib/oracle-skills";
 import {
   slaStates,
   gateRequirements,
@@ -35,12 +40,30 @@ function hours(n: number | null): string {
   return `${Math.round(n)}h`;
 }
 
-export default async function RequisitionPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RequisitionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { id } = await params;
+  const { error } = await searchParams;
   const req = await getRequisition(id);
   if (!req) notFound();
 
-  const [searched, history] = await Promise.all([hasLoggedSearch(id), requisitionHistory(id)]);
+  const [searched, history, subs] = await Promise.all([
+    hasLoggedSearch(id),
+    requisitionHistory(id),
+    listSubmissionsForRequisition(id),
+  ]);
+  const counts = await feedbackCounts(subs.map((s) => s.id));
+  // Only offered once sourcing is open, and only from the repository — there is
+  // no free-text candidate here, which is what keeps the repository central
+  // rather than a place people copy names out of afterwards.
+  const pool = canSubmit(req.status)
+    ? await searchCandidates({ skills: req.primarySkill ? [req.primarySkill] : [], status: "Active" })
+    : [];
   const gate = gateRequirements(req, searched);
   const open = canOpenSourcing(req, searched);
   const slas = slaStates(req);
@@ -66,6 +89,12 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
         </span>
         <span>Raised by {req.raisedBy || "unknown"} on {req.raisedAt.slice(0, 10)}</span>
       </div>
+
+      {error && (
+        <div role="alert" className="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          {error}
+        </div>
+      )}
 
       {step && (
         <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -363,6 +392,121 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
           </CardBody>
         </Card>
       )}
+
+      <Card className="mt-6">
+        <CardHeader
+          title="Submissions"
+          subtitle={canSubmit(req.status) ? `${subs.length} put forward` : "Opens once sourcing does"}
+        />
+        <CardBody className="space-y-3">
+          {subs.length === 0 && (
+            <p className="text-sm text-slate-500">
+              {canSubmit(req.status)
+                ? "Nobody submitted yet."
+                : "The gate above has to open before anyone can be put forward."}
+            </p>
+          )}
+
+          {subs.map((s) => {
+            const waiting = daysAwaitingClient(s);
+            return (
+              <div key={s.id} className="flex flex-wrap items-baseline justify-between gap-2 rounded-md border border-slate-100 px-3 py-2">
+                <div className="min-w-0">
+                  <Link href={`/submissions/${s.id}`} className="text-sm font-medium text-slate-800 hover:text-indigo-600">
+                    {s.candidateName}
+                  </Link>
+                  <span className="ml-2 text-xs text-slate-500">{s.status}</span>
+                  {s.rejectionReason && <span className="ml-2 text-xs text-rose-600">{s.rejectionReason}</span>}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-slate-500 tabular-nums">
+                  {counts.get(s.id) ? <span>{counts.get(s.id)} feedback</span> : null}
+                  {waiting != null && (
+                    <span className={isChaseOverdue(s) ? "font-medium text-amber-600" : ""}>
+                      {Math.floor(waiting)}d waiting
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {canSubmit(req.status) && (
+            <form action={createSubmissionAction.bind(null, req.id)} className="space-y-3 border-t border-slate-100 pt-4">
+              <p className="text-xs font-medium text-slate-500">Put someone forward</p>
+              {pool.length === 0 ? (
+                <p className="text-xs text-slate-500">
+                  No active candidates match this role yet.{" "}
+                  <Link href={`/candidates?for=${req.id}`} className="underline underline-offset-2">
+                    Search the repository
+                  </Link>{" "}
+                  or add someone new.
+                </p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Candidate</label>
+                      <select name="candidateId" required className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                        <option value="">Choose from the repository…</option>
+                        {pool.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.fullName}
+                            {c.yearsExperience != null ? ` — ${c.yearsExperience} yrs` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-500">Rate</label>
+                        <input type="number" name="rateOffered" min={0} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-500">Cur.</label>
+                        <input name="rateCurrency" defaultValue={req.budgetCurrency} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-500">Per</label>
+                        <select name="rateUnit" defaultValue={req.budgetRateUnit} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                          {RATE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">
+                      What the tailored resume emphasises
+                    </label>
+                    <textarea
+                      name="tailoringNotes"
+                      rows={2}
+                      placeholder="Which genuine experience was brought forward for this requirement."
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Tailored resume</label>
+                      <input type="file" name="resume" className="w-full text-sm" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Email thread reference</label>
+                      <input name="emailThreadRef" defaultValue={`[${req.reference}] ${req.roleTitle}`} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-slate-600">
+                    <input type="checkbox" name="submitNow" value="yes" defaultChecked />
+                    Already sent to the client — starts the response clock
+                  </label>
+                  <button type="submit" className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                    Record submission
+                  </button>
+                </>
+              )}
+            </form>
+          )}
+        </CardBody>
+      </Card>
 
       <Card className="mt-6">
         <CardHeader title="History" subtitle={`${history.length} recorded`} />

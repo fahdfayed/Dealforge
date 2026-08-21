@@ -288,3 +288,54 @@ export const requisitionEvents = sqliteTable("requisition_events", {
   note: text("note").notNull().default(""),
   createdAt: integer("created_at").notNull(),
 });
+
+// A candidate put forward to a client against a requisition.
+//
+// The resume that went out is stored here rather than read from the candidate
+// record, because the submitted document is tailored to the requirement and
+// differs from the file on the candidate. Storing it is what makes a later
+// "what exactly did we send them" answerable.
+export const submissions = sqliteTable("submissions", {
+  id: text("id").primaryKey(),
+  requisitionId: text("requisition_id").notNull(),
+  candidateId: text("candidate_id").notNull(),
+  // Denormalised so a submission list does not need a join, and so the record
+  // still reads correctly if the candidate is later renamed.
+  candidateName: text("candidate_name").notNull().default(""),
+  status: text("status").notNull().default("Prepared"),
+  submittedAt: integer("submitted_at"),
+  submittedBy: text("submitted_by").notNull().default(""),
+  resumeStorageKey: text("resume_storage_key"),
+  resumeFilename: text("resume_filename"),
+  tailoringNotes: text("tailoring_notes").notNull().default(""),
+  rateOffered: real("rate_offered"),
+  rateCurrency: text("rate_currency").notNull().default("AED"),
+  rateUnit: text("rate_unit").notNull().default("Per day"),
+  clientFeedbackAt: integer("client_feedback_at"),
+  clientFeedbackNotes: text("client_feedback_notes").notNull().default(""),
+  rejectionReason: text("rejection_reason"),
+  // The mail thread this was sent on. The app is the record; this is the
+  // pointer back to the conversation, not the source of truth.
+  emailThreadRef: text("email_thread_ref").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// Interview feedback, one row per stage, on the standard template.
+export const interviewFeedback = sqliteTable("interview_feedback", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id").notNull(),
+  stage: text("stage").notNull(),
+  interviewer: text("interviewer").notNull().default(""),
+  interviewedAt: integer("interviewed_at").notNull(),
+  recommendation: text("recommendation").notNull(),
+  // JSON object of dimension -> 1-5.
+  ratings: text("ratings").notNull().default("{}"),
+  // JSON arrays. Pointer format is required, so these are lists rather than
+  // prose and cannot collapse into "good candidate, proceed".
+  strengths: text("strengths").notNull().default("[]"),
+  concerns: text("concerns").notNull().default("[]"),
+  notes: text("notes").notNull().default(""),
+  recordedBy: text("recorded_by").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+});
