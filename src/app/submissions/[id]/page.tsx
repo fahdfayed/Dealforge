@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSubmission, listFeedback } from "@/lib/submission-repo";
@@ -50,6 +51,10 @@ export default async function SubmissionPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const { id } = await params;
   const { error } = await searchParams;
   const sub = await getSubmission(id);

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import {
   createSubmission,
   markSubmitted,
@@ -31,7 +31,7 @@ const lines = (f: FormData, k: string) =>
     .filter(Boolean);
 
 export async function createSubmissionAction(requisitionId: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const candidateId = str(formData, "candidateId");
   if (!candidateId) {
     redirect(
@@ -76,7 +76,7 @@ function done(id: string, requisitionId?: string) {
 }
 
 export async function markSubmittedAction(id: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await markSubmitted(id, user.name);
   const sub = await getSubmission(id);
   done(id, sub?.requisitionId);
@@ -100,7 +100,7 @@ export async function clientFeedbackAction(id: string, formData: FormData) {
 }
 
 export async function addFeedbackAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const ratings: FeedbackRatings = {};
   for (const d of FEEDBACK_DIMENSIONS) {
     const v = num(formData, `rating_${d.key}`);

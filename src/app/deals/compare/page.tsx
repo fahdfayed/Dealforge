@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { getDeal, listDeals } from "@/lib/deal-repo";
 import { computeProbability, computeDimensions, discoveryCoverage } from "@/lib/scoring";
@@ -12,6 +13,10 @@ export default async function ComparePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const params = await searchParams;
   const idsParam = String(params.ids ?? "");
   const ids = idsParam ? idsParam.split(",").filter(Boolean) : [];

@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { listAccounts } from "@/lib/account-repo";
 import { listIndustries } from "@/lib/industry-pack-repo";
@@ -13,6 +14,10 @@ import { CLIENT_TYPES } from "@/types/deal-twin";
 export const dynamic = "force-dynamic";
 
 export default async function AccountsPage() {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const [accounts, industries] = await Promise.all([listAccounts(), listIndustries()]);
   const industryName = new Map(industries.map((i) => [i.id, i.name]));
 

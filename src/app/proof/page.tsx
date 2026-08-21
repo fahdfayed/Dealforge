@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import { listProofAssets } from "@/lib/proof-repo";
 import { PROOF_ASSET_TYPES, PROOF_ACCESS_LEVELS } from "@/types/proof";
 import { PageHeader } from "@/components/page-header";
@@ -13,6 +14,10 @@ const ACCESS_COLOR: Record<string, string> = { Public: "emerald", Confidential: 
 export const dynamic = "force-dynamic";
 
 export default async function ProofVaultPage() {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const assets = await listProofAssets();
 
   return (

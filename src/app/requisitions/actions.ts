@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import { knownSkills } from "@/lib/oracle-skills";
 import {
   createRequisition,
@@ -31,7 +31,7 @@ function numberOrNull(value: FormDataEntryValue | null): number | null {
 const str = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 export async function createRequisitionAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const roleTitle = str(formData, "roleTitle");
   if (!roleTitle) throw new Error("A requisition needs a role title.");
 
@@ -69,13 +69,13 @@ function done(id: string) {
 }
 
 export async function acknowledgeAction(id: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await acknowledgeRequisition(id, user.name);
   done(id);
 }
 
 export async function calibrationAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const participants = str(formData, "participants")
     .split(",")
     .map((p) => p.trim())
@@ -85,14 +85,14 @@ export async function calibrationAction(id: string, formData: FormData) {
 }
 
 export async function resourcingCheckAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const outcome = str(formData, "outcome") as ResourcingOutcome;
   await recordResourcingCheck(id, user.name, outcome, str(formData, "notes"));
   done(id);
 }
 
 export async function decisionAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const decision = str(formData, "decision") as GoDecision;
   const reason = str(formData, "reason");
   // A no-go without a reason is how the same unfillable requirement comes back
@@ -105,19 +105,19 @@ export async function decisionAction(id: string, formData: FormData) {
 }
 
 export async function openSourcingAction(id: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await openSourcing(id, user.name);
   done(id);
 }
 
 export async function firstProfileAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await recordFirstProfile(id, user.name, str(formData, "note"));
   done(id);
 }
 
 export async function statusAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await setRequisitionStatus(
     id,
     user.name,

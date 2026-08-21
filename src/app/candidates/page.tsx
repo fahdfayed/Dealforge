@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { searchCandidates, searchMetrics, type CandidateFilters } from "@/lib/candidate-repo";
 import { logSearchAction } from "./actions";
@@ -30,6 +31,10 @@ export default async function CandidatesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const sp = await searchParams;
   const one = (k: string) => (Array.isArray(sp[k]) ? sp[k][0] : sp[k]) as string | undefined;
   const many = (k: string) => (Array.isArray(sp[k]) ? sp[k] : sp[k] ? [sp[k]] : []) as string[];

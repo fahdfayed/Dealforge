@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { dealSummariesForAccount, getAccount } from "@/lib/account-repo";
@@ -14,6 +15,10 @@ import { CLIENT_TYPES } from "@/types/deal-twin";
 export const dynamic = "force-dynamic";
 
 export default async function AccountPage({ params }: { params: Promise<{ id: string }> }) {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const { id } = await params;
   const [account, industries] = await Promise.all([getAccount(id), listIndustries()]);
   if (!account) notFound();

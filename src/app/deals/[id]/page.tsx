@@ -14,7 +14,8 @@ import { updateDealCore, shareDealAction, assignRoleAction } from "./actions";
 import { duplicateDealAction, deleteDealAction } from "../actions";
 import { getDealAccess, getDealResponsibilities, getDealSODViolations, getTeamMembers } from "@/lib/team-repo";
 import { shareDealWithUser, assignResponsibility } from "@/lib/team-repo";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
+import { can } from "@/lib/authz";
 
 const FACTOR_FIELDS: { name: string; label: string }[] = [
   { name: "relationshipFactor", label: "Relationship" },
@@ -51,16 +52,17 @@ export default async function DealTwinPage({
   const actions = getRecommendedActions(deal.twin);
   const save = updateDealCore.bind(null, deal.id, deal.revision);
 
-  const [dealAccesses, responsibilities, sodViolations, teamMembers, user] = await Promise.all([
+  const user = await requireUser();
+  const [dealAccesses, responsibilities, sodViolations, teamMembers] = await Promise.all([
     getDealAccess(id),
     getDealResponsibilities(id),
     getDealSODViolations(id),
     getTeamMembers(),
-    getCurrentUser(),
   ]);
 
-  const currentUserMember = teamMembers.find(m => m.id === user.id);
-  const canManage = !!(currentUserMember && (currentUserMember.role === "admin" || currentUserMember.role === "editor"));
+  // Read from the session's own role rather than looking the member up again:
+  // the session is already the authority on who this is.
+  const canManage = can(user.role, "deal.share");
 
   return (
     <div className="space-y-6">

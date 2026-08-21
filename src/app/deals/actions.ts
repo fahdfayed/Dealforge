@@ -3,13 +3,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createDeal, deleteDeal, duplicateDeal, saveDeal } from "@/lib/deal-repo";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import { createDealFromTemplate, DEAL_TEMPLATES } from "@/lib/deal-templates";
 
 export async function createDealAction(formData: FormData) {
   const company = String(formData.get("company") ?? "").trim();
   if (!company) throw new Error("Company is required.");
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const deal = await createDeal({ company, owner: user.name });
   revalidatePath("/deals");
   redirect(`/deals/${deal.id}`);
@@ -19,7 +19,7 @@ export async function createDealAction(formData: FormData) {
 // industry, countries, client type — is inherited, so the industry pack is
 // active before the first question is asked.
 export async function createDealForAccountAction(accountId: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const deal = await createDeal({ company: "", owner: user.name, accountId });
   revalidatePath("/deals");
   revalidatePath(`/accounts/${accountId}`);
@@ -35,7 +35,7 @@ export async function createDealFromTemplateAction(formData: FormData) {
   const template = DEAL_TEMPLATES.find((t) => t.id === templateId);
   if (!template) throw new Error("Template not found.");
 
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const twin = createDealFromTemplate(template, company, user.name);
 
   // Create the base deal first, then save the template-filled twin

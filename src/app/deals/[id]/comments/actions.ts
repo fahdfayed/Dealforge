@@ -1,12 +1,12 @@
 "use server";
 
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import { mutateDeal } from "@/lib/deal-mutation";
 import type { TeamComment } from "@/types/deal-twin";
 
 export async function addCommentAction(dealId: string, revision: number, text: string, replyToId?: string) {
   if (!text.trim()) throw new Error("Comment cannot be empty.");
-  const user = await getCurrentUser();
+  const user = await requireUser();
 
   await mutateDeal(dealId, revision, (twin) => {
     const newComment: TeamComment = {

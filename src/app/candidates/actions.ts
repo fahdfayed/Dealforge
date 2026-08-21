@@ -9,7 +9,7 @@ import {
   type CandidateFilters,
   type CandidateInput,
 } from "@/lib/candidate-repo";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import {
   makeStorageKey,
   putObject,
@@ -88,7 +88,7 @@ async function readResume(
 }
 
 export async function createCandidateAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const input = readForm(formData, user.name);
   if (!input.fullName) throw new Error("A candidate needs a name.");
 
@@ -101,7 +101,7 @@ export async function createCandidateAction(formData: FormData) {
 }
 
 export async function updateCandidateAction(id: string, formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const input = readForm(formData, user.name);
   if (!input.fullName) throw new Error("A candidate needs a name.");
 
@@ -120,7 +120,7 @@ export async function logSearchAction(
   resultCount: number,
   requisitionId?: string | null
 ) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await logCandidateSearch({
     searchedBy: user.name,
     query: filters.q ?? "",

@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
 import { computeProbability, getSafetyMode, computeDimensions } from "@/lib/scoring";
@@ -17,6 +18,10 @@ export default async function DealLayout({
   lens: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const { id } = await params;
   const deal = await getDeal(id);
   if (!deal) notFound();

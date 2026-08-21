@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { listAccounts } from "@/lib/account-repo";
 import { createRequisitionAction } from "../actions";
@@ -9,6 +10,10 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 export const dynamic = "force-dynamic";
 
 export default async function NewRequisitionPage() {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const accounts = await listAccounts();
 
   return (

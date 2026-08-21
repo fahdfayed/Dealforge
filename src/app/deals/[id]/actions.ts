@@ -5,7 +5,7 @@ import { mutateDeal } from "@/lib/deal-mutation";
 import { recalculateActiveQuestions } from "@/lib/answer-graph";
 import { getIndustrySync } from "@/lib/industry-packs";
 import { shareDealWithUser, assignResponsibility } from "@/lib/team-repo";
-import { getCurrentUser } from "@/lib/identity";
+import { requireUser } from "@/lib/identity";
 import type {
   ClientType,
   CommercialModelType,
@@ -86,13 +86,13 @@ export async function updateDealCore(dealId: string, expectedRevision: number, f
 }
 
 export async function shareDealAction(dealId: string, userId: string, accessLevel: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await shareDealWithUser(dealId, userId, accessLevel, user.id);
   revalidatePath(`/deals/${dealId}`);
 }
 
 export async function assignRoleAction(dealId: string, userId: string, role: string) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await assignResponsibility(dealId, userId, role as any, user.id);
   revalidatePath(`/deals/${dealId}`);
 }

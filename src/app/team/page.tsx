@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/identity";
 import { getTeamMembers } from "@/lib/team-repo";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
@@ -19,6 +20,10 @@ const ROLE_COLORS: Record<string, string> = {
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
+  // Every authenticated screen goes through the gate. The middleware only
+  // redirects when the cookie is absent; it cannot tell a forged one from a
+  // real one, so this is where a session is actually verified.
+  await requireUser();
   const members = await getTeamMembers();
 
   return (
