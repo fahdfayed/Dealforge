@@ -1,0 +1,45 @@
+name: CI
+
+# Runs on every push and pull request. The point is that a broken build cannot
+# reach the deploy step: the platform builds from the same commit, so anything
+# caught here is caught before it is live.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # Typecheck before build. Both would catch a type error, but tsc says
+      # which line and the bundler often does not.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # Migrations are applied twice against a throwaway file database: once to
+      # prove the SQL is valid, once to prove re-running changes nothing. A
+      # migration that is not idempotent fails here rather than against
+      # production, where the second run is a real deploy.
+      - name: Verify migrations apply and are idempotent
+        run: npm run db:migrate && npm run db:migrate
+        env:
+          DATABASE_URL: "file:./ci-check.db"
+
+      - name: Build
+        run: npm run build
+        env:
+          # The build only needs these to exist; it does not connect.
+          DATABASE_URL: "file:./ci-check.db"

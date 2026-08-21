@@ -1,5 +1,6 @@
 "use server";
 
+import type { DealResponsibility } from "@/types/team";
 import { revalidatePath } from "next/cache";
 import { mutateDeal } from "@/lib/deal-mutation";
 import { recalculateActiveQuestions } from "@/lib/answer-graph";
@@ -93,6 +94,6 @@ export async function shareDealAction(dealId: string, userId: string, accessLeve
 
 export async function assignRoleAction(dealId: string, userId: string, role: string) {
   const user = await requireUser();
-  await assignResponsibility(dealId, userId, role as any, user.id);
+  await assignResponsibility(dealId, userId, role as DealResponsibility, user.id);
   revalidatePath(`/deals/${dealId}`);
 }

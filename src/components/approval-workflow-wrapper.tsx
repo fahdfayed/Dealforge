@@ -1,10 +1,10 @@
 "use client";
 
 import { ApprovalWorkflow } from "@/components/approval-workflow";
-import type { ScenarioStatus, ProposalStatus } from "@/types/deal-twin";
+import type { ApprovalRecord, ProposalStatus, ScenarioStatus } from "@/types/deal-twin";
 
 interface ApprovalWorkflowWrapperProps {
-  approvals?: any[] | null;
+  approvals?: ApprovalRecord[] | null;
   status: ScenarioStatus | ProposalStatus;
   dealId: string;
   entityId: string;

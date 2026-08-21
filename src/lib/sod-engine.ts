@@ -1,7 +1,7 @@
 import { getDealResponsibilities, getSODRules, recordSODViolation, getDealSODViolations } from "@/lib/team-repo";
 import { getDeal } from "@/lib/deal-repo";
 import type { Deal } from "@/types/deal-twin";
-import type { Responsibility } from "@/types/team";
+import type { DealResponsibility, Responsibility } from "@/types/team";
 
 export type SODCheckResult = {
   violations: Array<{
@@ -138,7 +138,7 @@ export async function checkSODOnAssignment(
       id: "temp",
       dealId,
       userId,
-      role: role as any,
+      role: role as DealResponsibility,
       assignedAt: new Date().toISOString(),
       assignedBy: "system",
       status: "active",
