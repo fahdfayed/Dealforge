@@ -2,17 +2,18 @@
 //
 // This is deliberately not drizzle-kit's own migrator. Both write to a table
 // called __drizzle_migrations but with different shapes, so a database
-// migrated by one is unreadable to the other — running drizzle-kit's migrator
-// against a database this has touched fails with "table deal_states already
-// exists". This is the one runner; src/db/client.ts calls it on module load
-// and src/db/migrate.ts calls it for the `npm run db:migrate` script.
-import Database from "better-sqlite3";
+// migrated by one is unreadable to the other.
+//
+// Runs against a libSQL client, which serves both a local file in development
+// and Turso in production, so the same migration path is exercised in both
+// rather than one being a guess about the other.
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { createHash } from "crypto";
+import type { Client } from "@libsql/client";
 
-export function runMigrations(db: Database.Database, log = console.log): void {
-  db.exec(`
+export async function runMigrations(db: Client, log: (...args: unknown[]) => void = console.log): Promise<void> {
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS __drizzle_migrations (
       id INTEGER PRIMARY KEY,
       hash TEXT NOT NULL UNIQUE,
@@ -25,26 +26,38 @@ export function runMigrations(db: Database.Database, log = console.log): void {
     .filter((f) => f.endsWith(".sql"))
     .sort();
 
-  const findByHash = db.prepare("SELECT id FROM __drizzle_migrations WHERE hash = ?");
-  const record = db.prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)");
-
   for (const file of migrationFiles) {
     const content = readFileSync(join(migrationsDir, file), "utf-8");
     const hash = createHash("sha256").update(content).digest("hex");
-    if (findByHash.get(hash)) continue;
+
+    const existing = await db.execute({
+      sql: "SELECT id FROM __drizzle_migrations WHERE hash = ?",
+      args: [hash],
+    });
+    if (existing.rows.length > 0) continue;
 
     log("[migrations] running", file);
-    // Each file is applied atomically: a partially-applied migration would be
-    // recorded as neither done nor pending and would need manual repair.
-    db.exec("BEGIN");
-    try {
-      db.exec(content);
-      record.run(hash, Math.floor(Date.now() / 1000));
-      db.exec("COMMIT");
-    } catch (err) {
-      db.exec("ROLLBACK");
-      throw err;
-    }
+
+    // Statements are applied as one batch so a partially-applied migration
+    // cannot be recorded as neither done nor pending. `batch` wraps them in a
+    // transaction on the server, which is also how it works against Turso —
+    // BEGIN/COMMIT issued as separate statements would not.
+    const statements = content
+      .split("--> statement-breakpoint")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    await db.batch(
+      [
+        ...statements,
+        {
+          sql: "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+          args: [hash, Math.floor(Date.now() / 1000)],
+        },
+      ],
+      "write"
+    );
+
     log("[migrations] applied", file);
   }
 }

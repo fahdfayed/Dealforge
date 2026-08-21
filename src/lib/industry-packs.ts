@@ -7,7 +7,7 @@
 //
 // This module holds types and the synchronous cache only, with no database
 // import: it is reached from lib/questions.ts, which client components pull in
-// transitively, and importing better-sqlite3 here drags `fs` into the browser
+// transitively, and importing the database client here drags `fs` into the browser
 // bundle. Database access lives in lib/industry-pack-repo.ts.
 //
 // Resolution is deliberately split into an async load and a sync read. The

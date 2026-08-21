@@ -1,6 +1,6 @@
 // Drizzle schema written against sqlite-core so the same table definitions
 // and queries work unmodified against Cloudflare D1 in production (see
-// src/db/client.ts) and against better-sqlite3 in local development.
+// src/db/client.ts) and against a local libSQL file in development.
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 // The Living Deal Twin is stored as one serialized, revision-controlled
