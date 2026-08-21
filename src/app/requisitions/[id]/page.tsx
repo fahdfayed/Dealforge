@@ -10,6 +10,8 @@ import { searchCandidates } from "@/lib/candidate-repo";
 import { daysAwaitingClient, isChaseOverdue, canSubmit } from "@/lib/submissions";
 import { createSubmissionAction } from "@/app/submissions/actions";
 import { RATE_UNITS } from "@/lib/oracle-skills";
+import { recommendFrom, requirementFromRequisition } from "@/lib/candidate-matching";
+import { CandidateRecommendations } from "@/components/candidate-recommendations";
 import {
   slaStates,
   gateRequirements,
@@ -61,9 +63,18 @@ export default async function RequisitionPage({
   // Only offered once sourcing is open, and only from the repository — there is
   // no free-text candidate here, which is what keeps the repository central
   // rather than a place people copy names out of afterwards.
-  const pool = canSubmit(req.status)
-    ? await searchCandidates({ skills: req.primarySkill ? [req.primarySkill] : [], status: "Active" })
-    : [];
+  //
+  // The whole repository is scored rather than pre-filtered to the primary
+  // skill: filtering first would hide the person who is a 90% fit on
+  // everything except the skill someone happened to type, which is exactly the
+  // person worth seeing.
+  const requirement = requirementFromRequisition(req);
+  const recommended = canSubmit(req.status)
+    ? recommendFrom(await searchCandidates({}), requirement, {
+        alreadySubmitted: new Set(subs.map((s) => s.candidateId)),
+        limit: 10,
+      })
+    : { matches: [], excluded: [] };
   const gate = gateRequirements(req, searched);
   const open = canOpenSourcing(req, searched);
   const slas = slaStates(req);
@@ -433,44 +444,34 @@ export default async function RequisitionPage({
           {canSubmit(req.status) && (
             <form action={createSubmissionAction.bind(null, req.id)} className="space-y-3 border-t border-slate-100 pt-4">
               <p className="text-xs font-medium text-slate-500">Put someone forward</p>
-              {pool.length === 0 ? (
-                <p className="text-xs text-slate-500">
-                  No active candidates match this role yet.{" "}
-                  <Link href={`/candidates?for=${req.id}`} className="underline underline-offset-2">
-                    Search the repository
-                  </Link>{" "}
-                  or add someone new.
-                </p>
+              {recommended.matches.length === 0 ? (
+                <CandidateRecommendations
+                  matches={recommended.matches}
+                  excluded={recommended.excluded}
+                  requirement={requirement}
+                />
               ) : (
                 <>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <CandidateRecommendations
+                    matches={recommended.matches}
+                    excluded={recommended.excluded}
+                    requirement={requirement}
+                    selectName="candidateId"
+                  />
+                  <div className="grid grid-cols-3 gap-2 sm:max-w-md">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-500">Candidate</label>
-                      <select name="candidateId" required className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-                        <option value="">Choose from the repository…</option>
-                        {pool.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.fullName}
-                            {c.yearsExperience != null ? ` — ${c.yearsExperience} yrs` : ""}
-                          </option>
-                        ))}
-                      </select>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Rate</label>
+                      <input type="number" name="rateOffered" min={0} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-500">Rate</label>
-                        <input type="number" name="rateOffered" min={0} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-500">Cur.</label>
-                        <input name="rateCurrency" defaultValue={req.budgetCurrency} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-500">Per</label>
-                        <select name="rateUnit" defaultValue={req.budgetRateUnit} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-                          {RATE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-                        </select>
-                      </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Cur.</label>
+                      <input name="rateCurrency" defaultValue={req.budgetCurrency} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Per</label>
+                      <select name="rateUnit" defaultValue={req.budgetRateUnit} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                        {RATE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                      </select>
                     </div>
                   </div>
                   <div>

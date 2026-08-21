@@ -18,6 +18,7 @@ export type StageId = "home" | "discover" | "shape" | "price" | "propose" | "han
 export type LensId =
   | "evidence"
   | "health"
+  | "staffing"
   | "commitments"
   | "actions"
   | "comments"
@@ -135,6 +136,7 @@ const STAGE_RULES: StageRule[] = [
 
 const LENS_RULES: Array<{ id: LensId; label: string; segment: string }> = [
   { id: "evidence", label: "Evidence & sources", segment: "sources" },
+  { id: "staffing", label: "Staffing", segment: "staffing" },
   // Health is a read-only view of scoring output, so it applies at every stage
   // rather than being a step in the flow.
   { id: "health", label: "Health", segment: "health" },
@@ -152,9 +154,22 @@ const LENS_RULES: Array<{ id: LensId; label: string; segment: string }> = [
 // is no solution to shape, and forcing one produces a component list nobody
 // means and an effort total nobody believes. Opting out of Shape says that
 // plainly instead of showing a stage that cannot be completed honestly.
-const ENGAGEMENT_MODULES: Partial<Record<EngagementType, { disabledStages?: StageId[] }>> = {
+type EngagementModules = { disabledStages?: StageId[]; disabledLenses?: LensId[] };
+
+const ENGAGEMENT_MODULES: Partial<Record<EngagementType, EngagementModules>> = {
   "Staff augmentation / AMS": { disabledStages: ["shape"] },
 };
+
+// Staffing recommendations only make sense where we are placing people, so
+// every engagement that is not staff augmentation opts out of that lens —
+// including a deal whose type has not been set yet. "Not yet known" is not
+// evidence that this is a staffing deal, and showing the lens by default would
+// put it on every new deal ever created.
+const STAFFING_ENGAGEMENT: EngagementType = "Staff augmentation / AMS";
+
+function lensesDisabledByEngagement(engagementType: EngagementType | null): LensId[] {
+  return engagementType === STAFFING_ENGAGEMENT ? [] : ["staffing"];
+}
 
 // A pack opts parts out; it never opts them in. A half-authored pack therefore
 // hides nothing, which is the safe direction to fail in. Engagement-level
@@ -167,7 +182,11 @@ function disabled(twin: DealTwin): { stages: Set<string>; lenses: Set<string> } 
     : undefined;
   return {
     stages: new Set([...(modules?.disabledStages ?? []), ...(byEngagement?.disabledStages ?? [])]),
-    lenses: new Set(modules?.disabledLenses ?? []),
+    lenses: new Set([
+      ...(modules?.disabledLenses ?? []),
+      ...(byEngagement?.disabledLenses ?? []),
+      ...lensesDisabledByEngagement(twin.dealDNA.engagementType),
+    ]),
   };
 }
 
