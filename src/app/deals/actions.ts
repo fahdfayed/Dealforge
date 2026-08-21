@@ -15,6 +15,17 @@ export async function createDealAction(formData: FormData) {
   redirect(`/deals/${deal.id}`);
 }
 
+// Creating a deal from the client screen: everything the account knows —
+// industry, countries, client type — is inherited, so the industry pack is
+// active before the first question is asked.
+export async function createDealForAccountAction(accountId: string) {
+  const user = await getCurrentUser();
+  const deal = await createDeal({ company: "", owner: user.name, accountId });
+  revalidatePath("/deals");
+  revalidatePath(`/accounts/${accountId}`);
+  redirect(`/deals/${deal.id}`);
+}
+
 export async function createDealFromTemplateAction(formData: FormData) {
   const company = String(formData.get("company") ?? "").trim();
   const templateId = String(formData.get("template") ?? "").trim();

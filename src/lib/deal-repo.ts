@@ -4,6 +4,10 @@ import { dealStates, radarIntakes } from "@/db/schema";
 import { createEmptyDealTwin, type Deal, type DealTwin } from "@/types/deal-twin";
 import { deleteObject } from "@/lib/storage";
 import { ensurePacksLoaded } from "@/lib/industry-pack-repo";
+import { getIndustrySync } from "@/lib/industry-packs";
+import { getAccount } from "@/lib/account-repo";
+import { recalculateActiveQuestions } from "@/lib/answer-graph";
+import { newId } from "@/lib/id";
 
 export class ConflictError extends Error {
   constructor(public dealId: string, public expected: number, public actual: number) {
@@ -38,13 +42,39 @@ export async function getDeal(id: string): Promise<Deal | null> {
   return rows[0] ? rowToDeal(rows[0]) : null;
 }
 
-export async function createDeal(input: { company: string; owner: string }): Promise<Deal> {
+// Creating a deal under an account inherits the account's industry and
+// countries, so the industry pack is already active on the first screen rather
+// than waiting for someone to remember to set it.
+export async function createDeal(input: {
+  company: string;
+  owner: string;
+  accountId?: string | null;
+}): Promise<Deal> {
+  await ensurePacksLoaded();
   const now = Date.now();
-  const id = crypto.randomUUID();
-  const twin = createEmptyDealTwin(input);
+  const id = newId();
+
+  const account = input.accountId ? await getAccount(input.accountId) : null;
+
+  let twin = createEmptyDealTwin({ company: account?.name ?? input.company, owner: input.owner });
+  if (account) {
+    twin = recalculateActiveQuestions({
+      ...twin,
+      dealDNA: {
+        ...twin.dealDNA,
+        industryId: account.industryId,
+        industry: getIndustrySync(account.industryId)?.name ?? "",
+        countries: account.countries,
+        clientType: account.clientType,
+      },
+    });
+  }
+
   await db.insert(dealStates).values({
     id,
-    company: input.company,
+    company: account?.name ?? input.company,
+    accountId: account?.id ?? null,
+    industryId: account?.industryId ?? null,
     payload: JSON.stringify(twin),
     revision: 1,
     createdAt: now,
@@ -70,6 +100,10 @@ export async function saveDeal(id: string, twin: DealTwin, expectedRevision: num
     .update(dealStates)
     .set({
       company: twin.identity.company,
+      // Kept in step with the payload on every save. If this drifts, SQL
+      // filters and rollups by industry silently disagree with what the deal
+      // screen shows.
+      industryId: twin.dealDNA.industryId,
       payload: JSON.stringify(twin),
       revision: nextRevision,
       updatedAt: now,
