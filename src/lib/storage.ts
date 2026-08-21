@@ -49,7 +49,7 @@ export async function deleteObject(key: string): Promise<void> {
   }
 }
 
-export function makeStorageKey(scope: "sources" | "proof", id: string, filename: string): string {
+export function makeStorageKey(scope: "sources" | "proof" | "resumes", id: string, filename: string): string {
   return `${scope}/${id}/${sanitizeFilename(filename)}`;
 }
 

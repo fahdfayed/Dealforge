@@ -1,7 +1,7 @@
 // Drizzle schema written against sqlite-core so the same table definitions
 // and queries work unmodified against Cloudflare D1 in production (see
 // src/db/client.ts) and against better-sqlite3 in local development.
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 // The Living Deal Twin is stored as one serialized, revision-controlled
 // record per opportunity (doc section 3.2 / 15.2) rather than spread across
@@ -153,4 +153,68 @@ export const sodViolations = sqliteTable("sod_violations", {
   details: text("details").notNull(),
   resolvedAt: integer("resolved_at"),
   detectedAt: integer("detected_at").notNull(),
+});
+
+// Central candidate repository (staff augmentation).
+//
+// Recruiters must search this before sourcing externally, so it has to be
+// filterable on the things that actually decide a submission — skill, years,
+// notice period, availability and rate — not just searchable as prose. Those
+// live as columns; the prose lives in the FTS5 mirror created in the migration
+// alongside this table.
+export const candidates = sqliteTable("candidates", {
+  id: text("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  // Used to spot a duplicate before one is created. Not unique at the database
+  // level: the same person legitimately reappears from a different source, and
+  // a hard constraint would push recruiters into inventing addresses.
+  email: text("email").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  location: text("location").notNull().default(""),
+  country: text("country").notNull().default(""),
+  primarySkill: text("primary_skill").notNull().default(""),
+  // JSON array, validated against the catalogue in lib/oracle-skills.ts.
+  oracleSkills: text("oracle_skills").notNull().default("[]"),
+  yearsExperience: integer("years_experience"),
+  currentEmployer: text("current_employer").notNull().default(""),
+  noticePeriodDays: integer("notice_period_days"),
+  availableFrom: integer("available_from"),
+  expectedRate: real("expected_rate"),
+  rateCurrency: text("rate_currency").notNull().default("AED"),
+  rateUnit: text("rate_unit").notNull().default("Per day"),
+  workAuthorisation: text("work_authorisation").notNull().default(""),
+  source: text("source").notNull().default("Inbound application"),
+  vendorName: text("vendor_name").notNull().default(""),
+  status: text("status").notNull().default("Active"),
+  ownerId: text("owner_id"),
+  communicationRating: text("communication_rating").notNull().default("Not assessed"),
+  softSkillNotes: text("soft_skill_notes").notNull().default(""),
+  summary: text("summary").notNull().default(""),
+  tags: text("tags").notNull().default("[]"),
+  resumeStorageKey: text("resume_storage_key"),
+  resumeFilename: text("resume_filename"),
+  // Extracted text, used for full-text search. Never shown as the candidate's
+  // resume — the original file is.
+  resumeText: text("resume_text").notNull().default(""),
+  createdBy: text("created_by").notNull().default(""),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+// Every search, logged.
+//
+// Two reasons. The process requires the repository to be searched before
+// external sourcing begins, and a rule nobody can evidence is not a rule. And
+// TA governance wants weekly numbers, which have to come from something
+// recorded as it happens rather than reconstructed afterwards.
+export const candidateSearches = sqliteTable("candidate_searches", {
+  id: text("id").primaryKey(),
+  searchedBy: text("searched_by").notNull().default(""),
+  query: text("query").notNull().default(""),
+  filters: text("filters").notNull().default("{}"),
+  resultCount: integer("result_count").notNull().default(0),
+  // Set once requisitions exist, so a search can be tied to the requirement it
+  // was run for.
+  requisitionId: text("requisition_id"),
+  createdAt: integer("created_at").notNull(),
 });

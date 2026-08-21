@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users, LogOut, Building2 } from "lucide-react";
+import { LayoutDashboard, Briefcase, Library, BarChart3, Menu, Users, LogOut, Building2, UserSearch } from "lucide-react";
 import { useState } from "react";
 import { logoutAction } from "@/app/auth/logout/actions";
 
@@ -13,6 +13,7 @@ const APPS = [
   { id: "deals", label: "Deals", href: "/deals", icon: Briefcase },
   { id: "portfolio", label: "Portfolio", href: "/portfolio", icon: BarChart3 },
   { id: "vault", label: "Docs", href: "/proof", icon: Library },
+  { id: "candidates", label: "Candidates", href: "/candidates", icon: UserSearch },
   { id: "team", label: "Team", href: "/team", icon: Users },
 ];
 
