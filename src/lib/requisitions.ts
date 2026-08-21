@@ -219,6 +219,12 @@ export type GateRequirement = {
   label: string;
   met: boolean;
   detail: string;
+  // Where the reader goes to satisfy it. Most are sections of the requisition
+  // itself, so they are anchors; the repository search is a different screen.
+  href: string;
+  // The action, in the reader's words. Derived labels like "Go to calibration
+  // call held" read as machine output.
+  fixLabel: string;
 };
 
 // What must be true before external sourcing can start.
@@ -236,6 +242,8 @@ export function gateRequirements(req: Requisition, searchLogged: boolean): GateR
       detail: req.acknowledgedAt
         ? `Acknowledged by ${req.acknowledgedBy || "TA"}`
         : "TA has not picked this up yet",
+      href: `/requisitions/${req.id}#acknowledge`,
+      fixLabel: "Acknowledge now",
     },
     {
       id: "calibrated",
@@ -244,6 +252,8 @@ export function gateRequirements(req: Requisition, searchLogged: boolean): GateR
       detail: req.calibratedAt
         ? `With ${req.calibrationParticipants.join(", ") || "participants not recorded"}`
         : "Sales, TA and the practice head have not aligned on the requirement",
+      href: `/requisitions/${req.id}#calibration`,
+      fixLabel: "Record calibration",
     },
     {
       id: "resourcing",
@@ -252,6 +262,8 @@ export function gateRequirements(req: Requisition, searchLogged: boolean): GateR
       detail: req.resourcingCheckedAt
         ? `${req.resourcingOutcome} — checked by ${req.resourcingCheckedBy || "practice head"}`
         : "Internal mobility has not been considered",
+      href: `/requisitions/${req.id}#resourcing`,
+      fixLabel: "Record resourcing check",
     },
     {
       id: "searched",
@@ -260,6 +272,10 @@ export function gateRequirements(req: Requisition, searchLogged: boolean): GateR
       detail: searchLogged
         ? "A search was run against this requirement"
         : "Search the repository before sourcing externally",
+      // Carries the requirement through, so running the search from here is
+      // what satisfies this very check.
+      href: `/candidates?for=${req.id}${req.primarySkill ? `&skill=${encodeURIComponent(req.primarySkill)}` : ""}`,
+      fixLabel: "Search the repository",
     },
     {
       id: "decision",
@@ -271,6 +287,8 @@ export function gateRequirements(req: Requisition, searchLogged: boolean): GateR
           : req.decision === "No-go"
             ? "Marked no-go and returned to sales"
             : "No decision recorded",
+      href: `/requisitions/${req.id}#decision`,
+      fixLabel: "Record decision",
     },
   ];
 }

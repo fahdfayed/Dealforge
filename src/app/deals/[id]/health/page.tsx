@@ -1,3 +1,4 @@
+import { DealFixLink } from "@/components/fix-link";
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
 import {
@@ -49,9 +50,10 @@ export default async function HealthDetailsPage({ params }: { params: Promise<{ 
           <CardBody className="space-y-3">
             {probability.gates.map((g) => (
               <div key={g.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-100 px-3 py-2.5">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800">{g.label}</p>
                   <p className="mt-0.5 text-xs text-slate-500">{g.reason}</p>
+                  {!g.complete && <DealFixLink dealId={id} fix={g.fix} />}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="text-xs text-slate-400">cap {g.cap}%</span>

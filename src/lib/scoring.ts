@@ -4,6 +4,7 @@
 // chooses transparently — the doc gives the inputs, not the exact weights,
 // for every dimension except evidence scoring, coverage/authority and stage
 // gate caps.
+import { FIX, type Fix } from "@/lib/fix-links";
 import type { Authority, DealTwin, Factor, Momentum, Stage } from "@/types/deal-twin";
 import { getActiveQuestions } from "@/lib/questions";
 import { evaluateSubmissionCheck } from "@/lib/submission-check";
@@ -87,7 +88,17 @@ export function criticalAuthorityScore(twin: DealTwin): number {
 
 // --- Pursuit gates (doc 5.4) ---------------------------------------------
 
-export type Gate = { id: string; label: string; cap: number; complete: boolean; reason: string };
+// `fix` names the screen that completes the gate, so a capped probability
+// leads somewhere instead of stating a fact the reader then has to act on
+// from memory.
+export type Gate = {
+  id: string;
+  label: string;
+  cap: number;
+  complete: boolean;
+  reason: string;
+  fix: Fix;
+};
 
 export function evaluateGates(twin: DealTwin): Gate[] {
   const coverage = discoveryCoverage(twin);
@@ -105,6 +116,9 @@ export function evaluateGates(twin: DealTwin): Gate[] {
         twin.dealDNA.engagementType && twin.dealDNA.industry && twin.dealDNA.countries.length > 0 && coverage.pct >= 30
       ),
       reason: "Engagement type, industry, at least one country, and 30%+ discovery coverage.",
+      // Deal DNA is set on the deal root; coverage is raised in Discover. The
+      // DNA fields are the ones that block first on a new deal.
+      fix: FIX.dealHome,
     },
     {
       id: "buying-alignment",
@@ -112,6 +126,7 @@ export function evaluateGates(twin: DealTwin): Gate[] {
       cap: 60,
       complete: buyingAligned,
       reason: "Economic buyer and technical decision-maker confirmed or document-backed.",
+      fix: FIX.discover,
     },
     {
       id: "solution-shaping",
@@ -119,6 +134,7 @@ export function evaluateGates(twin: DealTwin): Gate[] {
       cap: 68,
       complete: Boolean(twin.solution.selectedPath && twin.solution.components.some((c) => c.included)),
       reason: "A solution path is selected with at least one included component.",
+      fix: FIX.solution,
     },
     {
       id: "commercial",
@@ -126,6 +142,7 @@ export function evaluateGates(twin: DealTwin): Gate[] {
       cap: 78,
       complete: Boolean(twin.savedCommercialScenarioId),
       reason: "A commercial scenario has been saved as the baseline.",
+      fix: FIX.price,
     },
     {
       id: "submission",
@@ -133,6 +150,7 @@ export function evaluateGates(twin: DealTwin): Gate[] {
       cap: 88,
       complete: submission.blockingIssues.length === 0,
       reason: "The Submission Check has no blocking issues.",
+      fix: FIX.submissionCheck,
     },
   ];
 }

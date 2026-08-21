@@ -12,7 +12,7 @@ import { ApprovalWorkflowWrapper } from "@/components/approval-workflow-wrapper"
 import { EmptyState } from "@/components/empty-state";
 import { ActionButton } from "@/components/button-group";
 import { Select } from "@/components/form-input";
-import { generateProposalAction, updateProposalStatusAction, deleteProposalAction, submitProposalApprovalAction } from "./actions";
+import { toggleProofLinkAction, generateProposalAction, updateProposalStatusAction, deleteProposalAction, submitProposalApprovalAction } from "./actions";
 import type { ProposalStatus } from "@/types/deal-twin";
 
 const STATUS_COLOR: Record<string, string> = { Draft: "slate", "Pending approval": "amber", Approved: "emerald", Sent: "sky" };
@@ -107,11 +107,28 @@ export default async function ProposalPage({
           <Card>
             <CardHeader title="Matched proof" />
             <CardBody className="space-y-2">
-              {matchedProof.map((p) => (
-                <p key={p.id} className="text-sm text-slate-700">
-                  <strong>{p.title}</strong> ({p.type}) — {p.whatItProves || p.summary}
-                </p>
-              ))}
+              {matchedProof.map((p) => {
+                const linked = deal.twin.proofLinks.includes(p.id);
+                return (
+                  <div key={p.id} className="flex flex-wrap items-start justify-between gap-2 rounded-md border border-slate-100 px-3 py-2">
+                    <p className="min-w-0 text-sm text-slate-700">
+                      <strong>{p.title}</strong> ({p.type}) — {p.whatItProves || p.summary}
+                    </p>
+                    <form action={toggleProofLinkAction.bind(null, id, rev, p.id)}>
+                      <button
+                        type="submit"
+                        className={`shrink-0 rounded px-2.5 py-1 text-xs font-medium ${
+                          linked
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "border border-slate-300 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {linked ? "Linked ✓" : "Link to deal"}
+                      </button>
+                    </form>
+                  </div>
+                );
+              })}
             </CardBody>
           </Card>
         )}

@@ -108,8 +108,19 @@ export function CandidateRecommendations({
           {m.gaps.length > 0 && (
             <ul className="mt-1 space-y-0.5">
               {m.gaps.map((g, i) => (
-                <li key={i} className="text-xs text-amber-700">
-                  {g}
+                <li key={i} className="flex flex-wrap items-baseline gap-2 text-xs text-amber-700">
+                  <span>{g}</span>
+                  {/* A gap caused by a blank field is fixed on the candidate
+                      record, so it links there rather than leaving the reader
+                      to work out where the value lives. */}
+                  {/not recorded|not assessed/i.test(g) && (
+                    <Link
+                      href={`/candidates/${m.candidate.id}`}
+                      className="whitespace-nowrap font-medium text-indigo-600 underline underline-offset-2"
+                    >
+                      Add it →
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Gate, Lens, Stage } from "@/lib/relevance";
+import { dealFixHref } from "@/lib/fix-links";
+import { FixLink } from "@/components/fix-link";
 
 // The deal's own navigation: a stepper for the stages, the substeps of whichever
 // stage you are in, a compact row of lenses that apply at every stage, and any
@@ -41,6 +43,10 @@ export function DealStageNav({
 
   const currentStage = stages.find(stageOwns) ?? null;
   const substeps = currentStage?.substeps ?? [];
+
+  // The first blocked stage, so the stepper can say how to unblock it instead
+  // of hiding the reason inside a title attribute nobody hovers.
+  const blockedWithFix = stages.find((s) => !s.available && s.blockedFix) ?? null;
 
   const activeGates = gates.filter(
     (g) => g.blocking.length > 0 && currentStage != null && g.stage === currentStage.id
@@ -84,6 +90,20 @@ export function DealStageNav({
           );
         })}
       </ol>
+
+      {blockedWithFix && (
+        <p className="mt-2 flex flex-wrap items-baseline gap-2 text-xs text-slate-500">
+          <span>
+            {blockedWithFix.label} is blocked: {blockedWithFix.blockedReason}
+          </span>
+          {blockedWithFix.blockedFix && (
+            <FixLink
+              href={dealFixHref(dealId, blockedWithFix.blockedFix)}
+              label={`Go to ${blockedWithFix.blockedFix.label}`}
+            />
+          )}
+        </p>
+      )}
 
       {substeps.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1 pl-1">
@@ -163,8 +183,9 @@ export function DealStageNav({
           </div>
           <ul className="mt-1.5 space-y-0.5">
             {gate.blocking.map((issue) => (
-              <li key={issue.id} className="text-xs text-amber-800">
-                {issue.label}
+              <li key={issue.id} className="flex flex-wrap items-baseline gap-2 text-xs text-amber-800">
+                <span>{issue.label}</span>
+                <FixLink href={dealFixHref(dealId, issue.fix)} label={`Fix in ${issue.fix.label}`} />
               </li>
             ))}
           </ul>

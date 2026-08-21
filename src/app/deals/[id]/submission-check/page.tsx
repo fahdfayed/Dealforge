@@ -4,6 +4,7 @@ import { evaluateSubmissionCheck, type CheckLens } from "@/lib/submission-check"
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { DealFixLink } from "@/components/fix-link";
 
 const LENSES: CheckLens[] = ["Core", "CFO", "CIO", "Procurement", "Delivery", "Oracle"];
 
@@ -36,9 +37,12 @@ export default async function SubmissionCheckPage({ params }: { params: Promise<
             <CardHeader title={`${lens} lens`} />
             <CardBody className="space-y-2">
               {lensIssues.map((issue) => (
-                <div key={issue.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm">
-                  <span>{issue.label}</span>
-                  <Badge color={issue.blocking ? "rose" : "amber"}>{issue.blocking ? "Blocking" : "Advisory"}</Badge>
+                <div key={issue.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm">
+                  <span className="min-w-0">{issue.label}</span>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <DealFixLink dealId={id} fix={issue.fix} />
+                    <Badge color={issue.blocking ? "rose" : "amber"}>{issue.blocking ? "Blocking" : "Advisory"}</Badge>
+                  </div>
                 </div>
               ))}
             </CardBody>

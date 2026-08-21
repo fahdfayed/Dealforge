@@ -11,6 +11,7 @@
 // says applies. Both answers come from here so the navigation, the stage
 // headers and any "what's next" prompt cannot disagree with each other.
 import type { DealTwin, EngagementType } from "@/types/deal-twin";
+import { FIX, type Fix } from "@/lib/fix-links";
 import { getPackSync } from "@/lib/industry-packs";
 import { evaluateSubmissionCheck } from "@/lib/submission-check";
 
@@ -36,6 +37,7 @@ export type Substep = {
   segment: string;
   available: boolean;
   blockedReason: string | null;
+  blockedFix: Fix | null;
 };
 
 export type Stage = {
@@ -49,6 +51,9 @@ export type Stage = {
   // Why it is not available yet, shown rather than hiding the reason from the
   // user. Null when available.
   blockedReason: string | null;
+  // Where to go to unblock it. Null when the stage is available, or when the
+  // condition is not something a screen resolves.
+  blockedFix: Fix | null;
   // Empty for stages that are a single screen.
   substeps: Substep[];
 };
@@ -66,6 +71,7 @@ type SubstepRule = {
   segment: string;
   requires: ((twin: DealTwin) => boolean) | null;
   blockedReason: string;
+  blockedFix?: Fix;
 };
 
 type StageRule = {
@@ -75,6 +81,7 @@ type StageRule = {
   // Null means always available.
   requires: ((twin: DealTwin) => boolean) | null;
   blockedReason: string;
+  blockedFix?: Fix;
   substeps?: SubstepRule[];
 };
 
@@ -87,6 +94,7 @@ const STAGE_RULES: StageRule[] = [
     segment: "solution",
     requires: (t) => Boolean(t.dealDNA.engagementType),
     blockedReason: "Set an engagement type on the deal first",
+    blockedFix: FIX.dealHome,
     substeps: [
       { id: "solution", label: "Solution", segment: "solution", requires: null, blockedReason: "" },
       {
@@ -95,6 +103,7 @@ const STAGE_RULES: StageRule[] = [
         segment: "build-offer",
         requires: (t) => Boolean(t.dealDNA.engagementType),
         blockedReason: "Set an engagement type on the deal first",
+        blockedFix: FIX.dealHome,
       },
     ],
   },
@@ -107,6 +116,7 @@ const STAGE_RULES: StageRule[] = [
     // applies where there is a Shape stage to satisfy it.
     requires: (t) => stageIsOff(t, "shape") || t.solution.components.length > 0,
     blockedReason: "Add solution components before pricing",
+    blockedFix: FIX.solution,
     substeps: [
       { id: "estimate", label: "Estimate", segment: "estimate", requires: null, blockedReason: "" },
       {
@@ -115,6 +125,7 @@ const STAGE_RULES: StageRule[] = [
         segment: "negotiate",
         requires: (t) => Boolean(t.savedCommercialScenarioId),
         blockedReason: "Save a commercial scenario before negotiating",
+        blockedFix: FIX.price,
       },
     ],
   },
@@ -124,6 +135,7 @@ const STAGE_RULES: StageRule[] = [
     segment: "proposal",
     requires: (t) => Boolean(t.savedCommercialScenarioId) || t.proposals.length > 0,
     blockedReason: "Save a commercial scenario before proposing",
+    blockedFix: FIX.price,
   },
   {
     id: "handover",
@@ -131,6 +143,7 @@ const STAGE_RULES: StageRule[] = [
     segment: "handover",
     requires: (t) => t.identity.stage === "Won",
     blockedReason: "Available once the deal is Won",
+    blockedFix: FIX.dealHome,
   },
 ];
 
@@ -204,6 +217,7 @@ export function stagesFor(twin: DealTwin): Stage[] {
       segment: rule.segment,
       available,
       blockedReason: available ? null : rule.blockedReason,
+      blockedFix: available ? null : (rule.blockedFix ?? null),
       substeps: (rule.substeps ?? []).map((sub) => {
         const subAvailable = sub.requires ? sub.requires(twin) : true;
         return {
@@ -212,6 +226,7 @@ export function stagesFor(twin: DealTwin): Stage[] {
           segment: sub.segment,
           available: subAvailable,
           blockedReason: subAvailable ? null : sub.blockedReason,
+          blockedFix: subAvailable ? null : (sub.blockedFix ?? null),
         };
       }),
     };
@@ -239,7 +254,9 @@ export type Gate = {
   id: string;
   stage: StageId;
   label: string;
-  blocking: Array<{ id: string; label: string }>;
+  // Carries each issue's fix through, so the gate card can link straight to
+  // the screen that clears it instead of only offering "view all checks".
+  blocking: Array<{ id: string; label: string; fix: Fix }>;
   // Where the full detail lives. The screen stays routable — the change is that
   // you are told about it on the stage it affects, instead of having to know to
   // go and look.
@@ -257,7 +274,7 @@ export function gatesFor(twin: DealTwin): Gate[] {
       id: "submission",
       stage: GATE_STAGE.submission,
       label: "Submission check",
-      blocking: blockingIssues.map((i) => ({ id: i.id, label: i.label })),
+      blocking: blockingIssues.map((i) => ({ id: i.id, label: i.label, fix: i.fix })),
       detailSegment: "submission-check",
     },
   ];

@@ -21,6 +21,15 @@ const STATUS_COLOR: Record<string, string> = {
   Cancelled: "slate",
 };
 
+// Mirrors the anchors on the requisition screen, so a breach in the list lands
+// on the section that clears it rather than the top of the page.
+const SLA_ANCHOR: Record<string, string> = {
+  acknowledge: "acknowledge",
+  calibration: "calibration",
+  decision: "decision",
+  firstProfile: "submissions",
+};
+
 export default async function RequisitionsPage() {
   const [reqs, metrics, searched] = await Promise.all([
     listRequisitions(),
@@ -102,9 +111,19 @@ export default async function RequisitionsPage() {
                   )}
 
                   {breached.length > 0 && (
-                    <p className="mt-1 text-xs font-medium text-rose-600">
-                      {breached.length} SLA {breached.length === 1 ? "breach" : "breaches"}:{" "}
-                      {breached.map((b) => b.label).join(", ")}
+                    <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-xs font-medium text-rose-600">
+                      <span>
+                        {breached.length} SLA {breached.length === 1 ? "breach" : "breaches"}:
+                      </span>
+                      {breached.map((bch) => (
+                        <Link
+                          key={bch.key}
+                          href={`/requisitions/${r.id}#${SLA_ANCHOR[bch.key] ?? ""}`}
+                          className="underline underline-offset-2 hover:text-rose-700"
+                        >
+                          {bch.label}
+                        </Link>
+                      ))}
                     </p>
                   )}
                 </CardBody>

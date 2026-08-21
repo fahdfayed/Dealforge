@@ -33,8 +33,18 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FixLink } from "@/components/fix-link";
 
 export const dynamic = "force-dynamic";
+
+// Which section of this page answers each clock, so a breach is one click from
+// the thing that clears it.
+const SLA_ANCHOR: Record<string, string> = {
+  acknowledge: "acknowledge",
+  calibration: "calibration",
+  decision: "decision",
+  firstProfile: "submissions",
+};
 
 function hours(n: number | null): string {
   if (n == null) return "";
@@ -122,7 +132,13 @@ export default async function RequisitionPage({
           {slas.map((s) => (
             <div key={s.key} className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
               <span className="text-slate-700">
-                {s.label}
+                {SLA_ANCHOR[s.key] && s.status !== "met" ? (
+                  <a href={`#${SLA_ANCHOR[s.key]}`} className="underline underline-offset-2 hover:text-slate-900">
+                    {s.label}
+                  </a>
+                ) : (
+                  s.label
+                )}
                 <span className="ml-2 text-xs text-slate-400">{s.owner}</span>
               </span>
               <span
@@ -169,14 +185,7 @@ export default async function RequisitionPage({
                   {g.label}
                 </p>
                 <p className="text-xs text-slate-500">{g.detail}</p>
-                {g.id === "searched" && !g.met && (
-                  <Link
-                    href={`/candidates?for=${req.id}&skill=${encodeURIComponent(req.primarySkill)}`}
-                    className="text-xs font-medium text-indigo-600 underline underline-offset-2"
-                  >
-                    Search the repository for this role
-                  </Link>
-                )}
+                {!g.met && <FixLink href={g.href} label={g.fixLabel} />}
               </div>
             </div>
           ))}
@@ -203,6 +212,7 @@ export default async function RequisitionPage({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* ---- acknowledge ---- */}
         <Card>
+          <div id="acknowledge" />
           <CardHeader title="Acknowledge" subtitle={STEP_OWNERS.acknowledge} />
           <CardBody>
             {req.acknowledgedAt ? (
@@ -224,6 +234,7 @@ export default async function RequisitionPage({
 
         {/* ---- calibration ---- */}
         <Card>
+          <div id="calibration" />
           <CardHeader title="Calibration call" subtitle={STEP_OWNERS.calibration} />
           <CardBody>
             {req.calibratedAt ? (
@@ -272,6 +283,7 @@ export default async function RequisitionPage({
 
         {/* ---- resourcing check ---- */}
         <Card>
+          <div id="resourcing" />
           <CardHeader title="Resourcing check" subtitle={STEP_OWNERS.resourcingCheck} />
           <CardBody>
             {req.resourcingCheckedAt ? (
@@ -321,6 +333,7 @@ export default async function RequisitionPage({
 
         {/* ---- go / no-go ---- */}
         <Card>
+          <div id="decision" />
           <CardHeader title="Go / no-go" subtitle={STEP_OWNERS.decision} />
           <CardBody>
             {req.decision ? (
@@ -405,6 +418,7 @@ export default async function RequisitionPage({
       )}
 
       <Card className="mt-6">
+        <div id="submissions" />
         <CardHeader
           title="Submissions"
           subtitle={canSubmit(req.status) ? `${subs.length} put forward` : "Opens once sourcing does"}

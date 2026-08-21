@@ -87,3 +87,24 @@ export async function submitProposalApprovalAction(
     path(dealId)
   );
 }
+
+// Links a matched proof asset to the deal.
+//
+// twin.proofLinks was read by the Submission Check but written by nothing, so
+// "No matched proof linked to this deal" was a blocking issue with no action
+// anywhere in the app that could clear it — the gate could never open. This is
+// that action. Matching suggests; linking is a deliberate choice, because
+// putting a reference in front of a client is one.
+export async function toggleProofLinkAction(dealId: string, expectedRevision: number, proofId: string) {
+  await mutateDeal(
+    dealId,
+    expectedRevision,
+    (twin) => ({
+      ...twin,
+      proofLinks: twin.proofLinks.includes(proofId)
+        ? twin.proofLinks.filter((id) => id !== proofId)
+        : [...twin.proofLinks, proofId],
+    }),
+    path(dealId)
+  );
+}

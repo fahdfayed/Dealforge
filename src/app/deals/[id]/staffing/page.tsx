@@ -5,6 +5,8 @@ import { searchCandidates } from "@/lib/candidate-repo";
 import { recommendFrom, requirementFromDeal } from "@/lib/candidate-matching";
 import { CandidateRecommendations } from "@/components/candidate-recommendations";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { DealFixLink } from "@/components/fix-link";
+import { FIX, type Fix } from "@/lib/fix-links";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +36,12 @@ export default async function StaffingPage({ params }: { params: Promise<{ id: s
 
   const { matches, excluded } = recommendFrom(await searchCandidates({}), requirement, { limit: 10 });
 
-  const missing: string[] = [];
-  if (requirement.skills.length === 0) missing.push("the skills required (Discover · sta-3)");
-  if (requirement.budgetRate == null) missing.push("a saved commercial position for the day cost");
-  if (!requirement.startBy) missing.push("a due date on the deal");
+  // Each gap names where it is captured, so the reader is not told what is
+  // missing and left to find the screen that holds it.
+  const missing: Array<{ label: string; fix: Fix }> = [];
+  if (requirement.skills.length === 0) missing.push({ label: "the skills required", fix: FIX.discover });
+  if (requirement.budgetRate == null) missing.push({ label: "a saved commercial position for the day cost", fix: FIX.price });
+  if (!requirement.startBy) missing.push({ label: "a due date", fix: FIX.dealHome });
 
   return (
     <div className="space-y-6">
@@ -48,9 +52,19 @@ export default async function StaffingPage({ params }: { params: Promise<{ id: s
         />
         <CardBody className="space-y-4">
           {missing.length > 0 && (
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-              Ranking improves once the deal records {missing.join(", ")}. Anything unrecorded is
-              scored neutral rather than counted against a candidate.
+            <div className="space-y-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              <p>
+                Ranking improves once the deal records the following. Anything unrecorded is scored
+                neutral rather than counted against a candidate.
+              </p>
+              <ul className="space-y-0.5">
+                {missing.map((m) => (
+                  <li key={m.label} className="flex flex-wrap items-baseline gap-2">
+                    <span>{m.label}</span>
+                    <DealFixLink dealId={id} fix={m.fix} />
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           <CandidateRecommendations
