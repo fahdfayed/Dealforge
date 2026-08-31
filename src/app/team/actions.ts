@@ -1,5 +1,6 @@
 "use server";
 
+import { require } from "@/lib/authz";
 import type { UserRole } from "@/types/team";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/identity";
@@ -20,12 +21,14 @@ export async function addTeamMemberAction(formData: FormData) {
 
 export async function updateTeamMemberAction(memberId: string, role: string) {
   const user = await requireUser();
+  require(user, "team.manage");
   await updateTeamMember(memberId, { role: role as UserRole });
   revalidatePath("/team");
 }
 
 export async function removeTeamMemberAction(memberId: string) {
   const user = await requireUser();
+  require(user, "team.manage");
   const member = await getTeamMember(memberId);
   if (!member) throw new Error("Team member not found.");
 

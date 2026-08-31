@@ -1,5 +1,6 @@
 "use server";
 
+import { require } from "@/lib/authz";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/identity";
@@ -32,6 +33,7 @@ const lines = (f: FormData, k: string) =>
 
 export async function createSubmissionAction(requisitionId: string, formData: FormData) {
   const user = await requireUser();
+  require(user, "submission.create");
   const candidateId = str(formData, "candidateId");
   if (!candidateId) {
     redirect(
@@ -77,12 +79,20 @@ function done(id: string, requisitionId?: string) {
 
 export async function markSubmittedAction(id: string) {
   const user = await requireUser();
+  require(user, "submission.create");
   await markSubmitted(id, user.name);
   const sub = await getSubmission(id);
   done(id, sub?.requisitionId);
 }
 
 export async function clientFeedbackAction(id: string, formData: FormData) {
+  // This action had no identity check at all — it never needed the actor's
+  // name, so nothing forced one. A server action is a POST endpoint like any
+  // other, so "it is only reachable from a page behind the login" is not a
+  // control.
+  const user = await requireUser();
+  require(user, "submission.recordFeedback");
+
   const status = str(formData, "status") as SubmissionStatus;
   const reason = (str(formData, "rejectionReason") || null) as RejectionReason | null;
   // A rejection without a reason is the vague feedback the review complained
@@ -101,6 +111,7 @@ export async function clientFeedbackAction(id: string, formData: FormData) {
 
 export async function addFeedbackAction(id: string, formData: FormData) {
   const user = await requireUser();
+  require(user, "submission.recordFeedback");
   const ratings: FeedbackRatings = {};
   for (const d of FEEDBACK_DIMENSIONS) {
     const v = num(formData, `rating_${d.key}`);

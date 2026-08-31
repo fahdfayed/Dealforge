@@ -1,5 +1,7 @@
 "use server";
 
+import { require } from "@/lib/authz";
+import { requireUser } from "@/lib/identity";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createAccount, updateAccount } from "@/lib/account-repo";
@@ -13,6 +15,8 @@ function parseCountries(raw: FormDataEntryValue | null): string[] {
 }
 
 export async function createAccountAction(formData: FormData) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Client name is required.");
 
@@ -29,6 +33,8 @@ export async function createAccountAction(formData: FormData) {
 }
 
 export async function updateAccountAction(accountId: string, formData: FormData) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Client name is required.");
 

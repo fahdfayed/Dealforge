@@ -96,12 +96,21 @@ export async function signup(
 
     const passwordHash = hashPassword(password);
 
+    // The first account on a new instance becomes the administrator.
+    //
+    // Without this, enforcing authorization locks the first person out of the
+    // deployment they just created: everyone signs up as a viewer, and nothing
+    // in the app can grant a role. The condition is that the table is empty, so
+    // it can happen exactly once and cannot be used to escalate later.
+    const anyMembers = await db.select({ id: teamMembers.id }).from(teamMembers).limit(1);
+    const role: UserRole = anyMembers.length === 0 ? "admin" : "viewer";
+
     const now = Date.now();
     await db.insert(teamMembers).values({
       id: userId,
       email,
       name,
-      role: "viewer",
+      role,
       status: "active",
       passwordHash,
       createdAt: now,
@@ -122,7 +131,9 @@ export async function signup(
         id: userId,
         email,
         name,
-        role: "viewer" as const,
+        // The role actually written above, not a hardcoded default — the first
+        // account is an admin and the session must say so.
+        role,
         status: "active" as const,
         createdAt: new Date(now).toISOString(),
         updatedAt: new Date(now).toISOString(),

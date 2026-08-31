@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDeal, saveDeal, ConflictError } from "@/lib/deal-repo";
+import { requireUser } from "@/lib/identity";
+import { assertCanEditDeal } from "@/lib/deal-authz";
 import type { DealTwin } from "@/types/deal-twin";
 
 // Every deal-mutating server action funnels through here: read the current
@@ -13,6 +15,13 @@ export async function mutateDeal(
   mutate: (twin: DealTwin) => DealTwin,
   path: string
 ): Promise<void> {
+  // Authorization lives here rather than in each action for the same reason
+  // the revision check does: this is the one path every deal write takes, so a
+  // new action cannot be added that skips it. Checking in forty places is
+  // checking in thirty-nine places and forgetting one.
+  const actor = await requireUser();
+  await assertCanEditDeal(actor, dealId);
+
   const deal = await getDeal(dealId);
   if (!deal) throw new Error(`Deal ${dealId} not found.`);
 

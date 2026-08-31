@@ -129,6 +129,18 @@ export class AuthorizationError extends Error {
   }
 }
 
+// Identify a refusal by name, not by instanceof.
+//
+// A module can be loaded twice — through a path alias in one place and a
+// relative specifier in another, or across a bundler boundary — which produces
+// two distinct classes with the same name. `instanceof` then returns false for
+// a genuine AuthorizationError, and a caller meaning to handle a refusal
+// gracefully would instead treat it as an unexpected crash. Observed while
+// testing this module, not hypothetical.
+export function isAuthorizationError(error: unknown): error is AuthorizationError {
+  return error instanceof Error && error.name === "AuthorizationError";
+}
+
 export function roleHasDomain(role: UserRole, domain: Domain): boolean {
   return ROLE_DOMAINS[role]?.includes(domain) ?? false;
 }

@@ -1,5 +1,7 @@
 "use server";
 
+import { require } from "@/lib/authz";
+import { assertCanEditDeal } from "@/lib/deal-authz";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createDeal, deleteDeal, duplicateDeal, saveDeal } from "@/lib/deal-repo";
@@ -47,12 +49,18 @@ export async function createDealFromTemplateAction(formData: FormData) {
 }
 
 export async function duplicateDealAction(dealId: string) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
+  await assertCanEditDeal(actor, dealId);
   const deal = await duplicateDeal(dealId);
   revalidatePath("/deals");
   redirect(`/deals/${deal.id}`);
 }
 
 export async function deleteDealAction(dealId: string) {
+  const actor = await requireUser();
+  require(actor, "deal.delete");
+  await assertCanEditDeal(actor, dealId);
   await deleteDeal(dealId);
   revalidatePath("/deals");
   redirect("/deals");

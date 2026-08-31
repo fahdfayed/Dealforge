@@ -1,3 +1,5 @@
+import { grantedDealIds } from "@/lib/deal-authz";
+import { seesAllDeals } from "@/lib/authz";
 import { requireUser } from "@/lib/identity";
 import Link from "next/link";
 import { listDeals } from "@/lib/deal-repo";
@@ -27,9 +29,19 @@ export default async function DealsPage({
   // Every authenticated screen goes through the gate. The middleware only
   // redirects when the cookie is absent; it cannot tell a forged one from a
   // real one, so this is where a session is actually verified.
-  await requireUser();
+  const actor = await requireUser();
   const params = await searchParams;
-  const deals = await listDeals();
+  const all = await listDeals();
+  // Filtered rather than shown-and-blocked: a list of deals you cannot open is
+  // both useless and a disclosure — the company names alone say who we are
+  // pursuing.
+  const granted = await grantedDealIds(actor);
+  const deals = all.filter(
+    (d) =>
+      seesAllDeals(actor.role) ||
+      granted.has(d.id) ||
+      d.twin.identity.owner.trim().toLowerCase() === actor.name.trim().toLowerCase()
+  );
 
   const filterStage = String(params.stage ?? "");
   const filterMinProb = params.minProb ? parseInt(String(params.minProb)) : 0;

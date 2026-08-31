@@ -1,9 +1,15 @@
 "use server";
 
+import { require } from "@/lib/authz";
+import { requireUser } from "@/lib/identity";
+import { assertCanEditDeal } from "@/lib/deal-authz";
 import { revalidatePath } from "next/cache";
 import { addSource, deleteSource } from "@/lib/sources-repo";
 
 export async function addSourceAction(dealId: string, formData: FormData) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
+  await assertCanEditDeal(actor, dealId);
   const sourceClass = String(formData.get("sourceClass") ?? "Other");
   const note = String(formData.get("note") ?? "");
   const file = formData.get("file");
@@ -23,6 +29,9 @@ export async function addSourceAction(dealId: string, formData: FormData) {
 }
 
 export async function deleteSourceAction(dealId: string, sourceId: string) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
+  await assertCanEditDeal(actor, dealId);
   await deleteSource(sourceId);
   revalidatePath(`/deals/${dealId}/sources`);
 }

@@ -1,10 +1,14 @@
 "use server";
 
+import { require } from "@/lib/authz";
+import { requireUser } from "@/lib/identity";
 import { revalidatePath } from "next/cache";
 import { createProofAsset, deleteProofAsset } from "@/lib/proof-repo";
 import type { ProofAccessLevel, ProofAssetType } from "@/types/proof";
 
 export async function addProofAssetAction(formData: FormData) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
   const title = String(formData.get("title") ?? "").trim();
   const summary = String(formData.get("summary") ?? "").trim();
   if (!title || !summary) throw new Error("Title and summary are required.");
@@ -34,6 +38,8 @@ export async function addProofAssetAction(formData: FormData) {
 }
 
 export async function deleteProofAssetAction(id: string) {
+  const actor = await requireUser();
+  require(actor, "deal.edit");
   await deleteProofAsset(id);
   revalidatePath("/proof");
 }

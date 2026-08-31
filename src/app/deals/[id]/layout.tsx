@@ -1,4 +1,6 @@
 import { requireUser } from "@/lib/identity";
+import { grantFor } from "@/lib/deal-authz";
+import { canViewDeal } from "@/lib/authz";
 import { notFound } from "next/navigation";
 import { getDeal } from "@/lib/deal-repo";
 import { computeProbability, getSafetyMode, computeDimensions } from "@/lib/scoring";
@@ -23,6 +25,15 @@ export default async function DealLayout({
   // real one, so this is where a session is actually verified.
   await requireUser();
   const { id } = await params;
+
+  // Every deal screen renders inside this layout, so checking here covers all
+  // seventeen of them. A person without access gets the same not-found as a
+  // deal that does not exist: confirming that a deal exists but is off limits
+  // leaks which clients we are pursuing.
+  const actor = await requireUser();
+  const grant = await grantFor(actor, id);
+  if (!canViewDeal(actor, grant)) notFound();
+
   const deal = await getDeal(id);
   if (!deal) notFound();
 

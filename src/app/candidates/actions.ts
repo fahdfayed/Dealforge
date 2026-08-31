@@ -1,5 +1,6 @@
 "use server";
 
+import { require } from "@/lib/authz";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -89,6 +90,7 @@ async function readResume(
 
 export async function createCandidateAction(formData: FormData) {
   const user = await requireUser();
+  require(user, "candidate.edit");
   const input = readForm(formData, user.name);
   if (!input.fullName) throw new Error("A candidate needs a name.");
 
@@ -102,6 +104,7 @@ export async function createCandidateAction(formData: FormData) {
 
 export async function updateCandidateAction(id: string, formData: FormData) {
   const user = await requireUser();
+  require(user, "candidate.edit");
   const input = readForm(formData, user.name);
   if (!input.fullName) throw new Error("A candidate needs a name.");
 
